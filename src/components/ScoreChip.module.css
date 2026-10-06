@@ -1,0 +1,31 @@
+.chip {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.low {
+  background: var(--risk-low-bg);
+  color: var(--risk-low-fg);
+}
+
+.medium {
+  background: var(--risk-medium-bg);
+  color: var(--risk-medium-fg);
+}
+
+.high {
+  background: var(--risk-high-bg);
+  color: var(--risk-high-fg);
+}
+
+.critical {
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+}

@@ -1,9 +1,12 @@
+import { Gavel, ShieldAlert, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useFraudStore } from '../../state/useFraudStore';
 import type { Verdict } from '../../types';
 import { VERDICT_LABELS } from '../../utils/investigation';
 import shared from '../shared.module.css';
 import styles from './Investigation.module.css';
+
+const VERDICT_ICONS: Record<Verdict, LucideIcon> = { fraud: ShieldAlert, legitimate: ShieldCheck };
 
 const reviewedAtFormat = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'medium',
@@ -43,9 +46,10 @@ export default function ReviewPanel({ transactionId }: { transactionId: string }
   return (
     <section className={shared.card} aria-labelledby="review-heading">
       <h2 id="review-heading" className={shared.cardTitle}>
+        <Gavel size={17} aria-hidden="true" />
         Analyst review
       </h2>
-      <p className={shared.cardDescription}>
+      <p className={`${shared.cardDescription} ${saved ? styles.savedLine : ''}`}>
         {saved
           ? `${VERDICT_LABELS[saved.verdict]} · saved ${reviewedAtFormat.format(new Date(saved.reviewedAt))}`
           : 'Not reviewed yet.'}
@@ -53,18 +57,22 @@ export default function ReviewPanel({ transactionId }: { transactionId: string }
       <form className={styles.reviewForm} onSubmit={onSubmit}>
         <fieldset className={styles.verdicts}>
           <legend>Verdict</legend>
-          {(Object.keys(VERDICT_LABELS) as Verdict[]).map((option) => (
-            <label key={option} className={styles.radio}>
-              <input
-                type="radio"
-                name="verdict"
-                value={option}
-                checked={verdict === option}
-                onChange={() => setVerdict(option)}
-              />
-              {VERDICT_LABELS[option]}
-            </label>
-          ))}
+          {(Object.keys(VERDICT_LABELS) as Verdict[]).map((option) => {
+            const Icon = VERDICT_ICONS[option];
+            return (
+              <label key={option} className={`${styles.verdict} ${styles[`verdict_${option}`]}`}>
+                <input
+                  type="radio"
+                  name="verdict"
+                  value={option}
+                  checked={verdict === option}
+                  onChange={() => setVerdict(option)}
+                />
+                <Icon size={18} aria-hidden="true" />
+                {VERDICT_LABELS[option]}
+              </label>
+            );
+          })}
         </fieldset>
         <label className={styles.noteField}>
           <span>Note (optional)</span>
@@ -76,11 +84,11 @@ export default function ReviewPanel({ transactionId }: { transactionId: string }
           />
         </label>
         <div className={styles.actions}>
-          <button type="submit" className={styles.primary}>
+          <button type="submit" className={shared.buttonPrimary}>
             Save review
           </button>
           {saved && (
-            <button type="button" className={styles.secondary} onClick={onClear}>
+            <button type="button" className={shared.buttonGhost} onClick={onClear}>
               Clear review
             </button>
           )}

@@ -2,6 +2,7 @@ import { compareChronological, isFlagged } from '../engine';
 import {
   RISK_LEVELS,
   STATUSES,
+  type Review,
   type RiskLevel,
   type ScoredTransaction,
   type Status,
@@ -67,6 +68,66 @@ export function dailyCounts(transactions: readonly ScoredTransaction[]): DailyCo
     if (isFlagged(tx.riskScore)) day.flagged += 1;
   }
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** "2026-09-01" -> UTC midnight ms; date-only maths, so no time zone can shift a day. */
+const dayMs = (date: string) =>
+  Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10));
+const DAY = 86_400_000;
+
+/**
+ * Lays daily counts out as calendar weeks, Monday first. Days between the first
+ * and last date with no transactions get zero counts; padding outside the range is null.
+ */
+export function calendarWeeks(daily: readonly DailyCount[]): (DailyCount | null)[][] {
+  const first = daily[0];
+  const last = daily[daily.length - 1];
+  if (!first || !last) return [];
+  const byDate = new Map(daily.map((d) => [d.date, d]));
+  const start = dayMs(first.date);
+  const end = dayMs(last.date);
+  const mondayOffset = (new Date(start).getUTCDay() + 6) % 7; // Mon=0 … Sun=6
+  const weeks: (DailyCount | null)[][] = [];
+  for (let ms = start - mondayOffset * DAY; ms <= end; ms += 7 * DAY) {
+    const week: (DailyCount | null)[] = [];
+    for (let i = 0; i < 7; i += 1) {
+      const dayStart = ms + i * DAY;
+      const date = new Date(dayStart).toISOString().slice(0, 10);
+      week.push(
+        dayStart < start || dayStart > end
+          ? null
+          : (byDate.get(date) ?? { date, total: 0, flagged: 0 }),
+      );
+    }
+    weeks.push(week);
+  }
+  return weeks;
+}
+
+// ---- Review queue ----
+
+/** Flagged and not yet reviewed by an analyst: the work still to do. */
+function needsReview(tx: ScoredTransaction, reviews: Readonly<Record<string, Review>>): boolean {
+  return isFlagged(tx.riskScore) && !reviews[tx.id];
+}
+
+export function countNeedsReview(
+  transactions: readonly ScoredTransaction[],
+  reviews: Readonly<Record<string, Review>>,
+): number {
+  let count = 0;
+  for (const tx of transactions) if (needsReview(tx, reviews)) count += 1;
+  return count;
+}
+
+/** Unreviewed flagged transactions, riskiest first, newest first on ties. */
+export function getReviewQueue(
+  transactions: readonly ScoredTransaction[],
+  reviews: Readonly<Record<string, Review>>,
+): ScoredTransaction[] {
+  return transactions
+    .filter((tx) => needsReview(tx, reviews))
+    .sort((a, b) => b.riskScore - a.riskScore || compareChronological(b, a));
 }
 
 // ---- Table filters (kept in the URL so views can be shared and survive reloads) ----

@@ -1,9 +1,20 @@
+import {
+  Banknote,
+  CalendarClock,
+  FileText,
+  MapPin,
+  SearchX,
+  Smartphone,
+  Store,
+  UserRound,
+} from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CustomerBaseline, RecentActivity } from '../components/investigation/AccountContext';
 import styles from '../components/investigation/Investigation.module.css';
 import ReviewPanel from '../components/investigation/ReviewPanel';
 import ScoreBreakdown from '../components/investigation/ScoreBreakdown';
+import PageHeader from '../components/PageHeader';
 import RiskBadge from '../components/RiskBadge';
 import shared from '../components/shared.module.css';
 import StatusBadge from '../components/StatusBadge';
@@ -25,87 +36,120 @@ export default function Investigation() {
   if (!tx || !baseline) {
     return (
       <div className={shared.page}>
-        <div className={shared.intro}>
-          <h1>Transaction not found</h1>
+        <PageHeader title="Transaction not found" crumbs={[{ label: 'Dashboard', to: '/' }]} />
+        <div className={`${shared.card} ${shared.empty}`}>
+          <SearchX size={28} aria-hidden="true" />
           <p>There is no transaction with ID “{id}”.</p>
+          <Link to="/" className={shared.button}>
+            Back to the dashboard
+          </Link>
         </div>
-        <p>
-          <Link to="/">Back to the dashboard</Link>
-        </p>
       </div>
     );
   }
 
   return (
     <div className={shared.page}>
-      <div>
-        <Link to="/" className={styles.back}>
-          ← Dashboard
-        </Link>
-        <div className={styles.header}>
-          <div>
-            <h1>Transaction {tx.id}</h1>
-            <p className={styles.headerMeta}>
-              {formatMoney(tx.amount, tx.currency)} at {tx.merchant} ·{' '}
-              {formatDateTime(tx.timestamp)}
-            </p>
-          </div>
-          <div className={styles.headerBadges}>
+      <PageHeader
+        crumbs={[
+          { label: 'Dashboard', to: '/' },
+          { label: tx.customerName, to: `/customer/${tx.accountId}` },
+        ]}
+        title={
+          <>
+            Transaction <span className="mono">{tx.id}</span>
+          </>
+        }
+        meta={
+          <>
+            <strong className={styles.heroAmount}>{formatMoney(tx.amount, tx.currency)}</strong> at{' '}
+            {tx.merchant} · {formatDateTime(tx.timestamp)}
+          </>
+        }
+        actions={
+          <>
             <RiskBadge level={tx.riskLevel} score={tx.riskScore} />
             <StatusBadge status={tx.status} />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className={styles.layout}>
         <div className={styles.column}>
-          <ScoreBreakdown tx={tx} rules={rules} />
-          <RecentActivity tx={tx} baseline={baseline} />
+          <div className={styles.slotScore}>
+            <ScoreBreakdown tx={tx} rules={rules} />
+          </div>
+          <div className={styles.slotActivity}>
+            <RecentActivity tx={tx} baseline={baseline} />
+          </div>
         </div>
         <div className={styles.column}>
-          <section className={shared.card} aria-labelledby="details-heading">
+          <div className={styles.slotReview}>
+            <ReviewPanel key={tx.id} transactionId={tx.id} />
+          </div>
+          <section
+            className={`${shared.card} ${styles.slotDetails}`}
+            aria-labelledby="details-heading"
+          >
             <h2 id="details-heading" className={shared.cardTitle}>
+              <FileText size={17} aria-hidden="true" />
               Details
             </h2>
-            <dl className={styles.facts}>
+            <dl className={shared.facts}>
               <div>
-                <dt>Customer</dt>
+                <dt>
+                  <UserRound size={14} aria-hidden="true" />
+                  Customer
+                </dt>
                 <dd>
-                  <Link to={`/customer/${tx.accountId}`}>{tx.customerName}</Link> ({tx.accountId})
+                  <Link to={`/customer/${tx.accountId}`}>{tx.customerName}</Link>{' '}
+                  <span className={`${shared.muted} mono`}>{tx.accountId}</span>
                 </dd>
               </div>
               <div>
-                <dt>Amount</dt>
+                <dt>
+                  <Banknote size={14} aria-hidden="true" />
+                  Amount
+                </dt>
                 <dd>{formatMoney(tx.amount, tx.currency)}</dd>
               </div>
               <div>
-                <dt>Merchant</dt>
+                <dt>
+                  <Store size={14} aria-hidden="true" />
+                  Merchant
+                </dt>
                 <dd>
-                  {tx.merchant} <span className={styles.aside}>({capitalize(tx.category)})</span>
+                  {tx.merchant} <span className={shared.muted}>· {capitalize(tx.category)}</span>
                 </dd>
               </div>
               <div>
-                <dt>Location</dt>
+                <dt>
+                  <MapPin size={14} aria-hidden="true" />
+                  Location
+                </dt>
                 <dd>
                   {tx.location.city}, {tx.location.country}
                 </dd>
               </div>
               <div>
-                <dt>Device</dt>
-                <dd>{tx.deviceId}</dd>
+                <dt>
+                  <Smartphone size={14} aria-hidden="true" />
+                  Device
+                </dt>
+                <dd className="mono">{tx.deviceId}</dd>
               </div>
               <div>
-                <dt>Time</dt>
+                <dt>
+                  <CalendarClock size={14} aria-hidden="true" />
+                  Time
+                </dt>
                 <dd>{formatDateTime(tx.timestamp)}</dd>
-              </div>
-              <div>
-                <dt>Status</dt>
-                <dd>{capitalize(tx.status)} (set automatically from the score)</dd>
               </div>
             </dl>
           </section>
-          <CustomerBaseline tx={tx} baseline={baseline} />
-          <ReviewPanel key={tx.id} transactionId={tx.id} />
+          <div className={styles.slotBaseline}>
+            <CustomerBaseline tx={tx} baseline={baseline} />
+          </div>
         </div>
       </div>
     </div>

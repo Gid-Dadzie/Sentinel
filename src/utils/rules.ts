@@ -8,6 +8,12 @@ import {
 } from '../types';
 import { summarize, type DashboardSummary } from './dashboard';
 
+/** Rule names are fixed (only points and on/off are editable), so the defaults are the source. */
+export const RULE_NAMES = Object.fromEntries(DEFAULT_RULES.map((r) => [r.id, r.name])) as Record<
+  RuleId,
+  string
+>;
+
 /** The default rule, for comparing and showing "Default: 25". */
 export function getDefaultRule(id: RuleId): RuleConfig | undefined {
   return DEFAULT_RULES.find((rule) => rule.id === id);

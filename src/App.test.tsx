@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { routerFuture } from './routerFuture';
 
-/** Lazy pages (the dashboard pulls in Recharts) can take over a second to import under load. */
+/** Lazy pages can take over a second to import when the whole suite runs in parallel. */
 const LAZY_PAGE = { timeout: 10_000 };
 
 function renderAt(path: string) {
@@ -37,7 +38,8 @@ describe('App shell', () => {
   it('keeps the Dashboard tab highlighted on drill-down pages', async () => {
     renderAt('/customer/ACC-2001');
     await screen.findByRole('heading', { level: 1, name: 'John Mensah' }, LAZY_PAGE);
-    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveClass('active');
+    const nav = within(screen.getByRole('navigation', { name: 'Main' }));
+    expect(nav.getByRole('link', { name: /^Dashboard/ })).toHaveClass('active');
     expect(screen.getByRole('link', { name: 'Rules' })).not.toHaveClass('active');
   });
 
@@ -45,5 +47,27 @@ describe('App shell', () => {
     renderAt('/rules');
     await screen.findByRole('heading', { level: 1, name: 'Rules' }, LAZY_PAGE);
     expect(screen.getByRole('link', { name: 'Rules' })).toHaveClass('active');
+  });
+
+  it('shows how many flagged transactions still need review in the nav', async () => {
+    renderAt('/rules');
+    await screen.findByRole('heading', { level: 1, name: 'Rules' }, LAZY_PAGE);
+    expect(screen.getByRole('link', { name: /^Dashboard \d+ to review$/ })).toBeInTheDocument();
+  });
+
+  it('switches and remembers the colour theme', async () => {
+    const user = userEvent.setup();
+    renderAt('/nope');
+    await user.click(screen.getByRole('button', { name: 'Dark theme' }));
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem('fraud-dashboard:theme')).toBe('dark');
+    expect(screen.getByRole('button', { name: 'Dark theme' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'System theme' }));
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(localStorage.getItem('fraud-dashboard:theme')).toBeNull();
   });
 });

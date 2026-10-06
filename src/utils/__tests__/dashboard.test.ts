@@ -4,7 +4,10 @@ import type { ScoredTransaction } from '../../types';
 import {
   DEFAULT_FILTERS,
   applyFilters,
+  calendarWeeks,
   countByRiskLevel,
+  countNeedsReview,
+  getReviewQueue,
   dailyCounts,
   filtersFromParams,
   filtersToParams,
@@ -185,5 +188,37 @@ describe('date formatting', () => {
     expect(formatDateTime('2026-10-05T02:34:00')).toBe('5 Oct 2026, 02:34');
     expect(formatDate('2026-09-01')).toBe('1 Sep 2026');
     expect(formatShortDate('2026-09-01')).toBe('1 Sep');
+  });
+});
+
+describe('review queue', () => {
+  const a = scored(30, { id: 'Q-A', timestamp: '2026-09-01T10:00:00' });
+  const b = scored(80, { id: 'Q-B', timestamp: '2026-09-02T10:00:00' });
+  const c = scored(30, { id: 'Q-C', timestamp: '2026-09-03T10:00:00' });
+  const low = scored(5, { id: 'Q-LOW' });
+  const reviewed = scored(90, { id: 'Q-DONE' });
+  const reviews = { 'Q-DONE': { verdict: 'fraud' as const, note: '', reviewedAt: 'x' } };
+
+  it('holds flagged, unreviewed transactions, riskiest then newest first', () => {
+    const queue = getReviewQueue([a, b, c, low, reviewed], reviews);
+    expect(queue.map((t) => t.id)).toEqual(['Q-B', 'Q-C', 'Q-A']);
+    expect(countNeedsReview([a, b, c, low, reviewed], reviews)).toBe(3);
+  });
+});
+
+describe('calendarWeeks', () => {
+  it('pads to Monday-first weeks and fills missing days with zeros', () => {
+    // 1 Sep 2026 is a Tuesday; 7 Sep is the next Monday.
+    const weeks = calendarWeeks([
+      { date: '2026-09-01', total: 3, flagged: 1 },
+      { date: '2026-09-07', total: 2, flagged: 0 },
+    ]);
+    expect(weeks).toHaveLength(2);
+    expect(weeks[0]?.[0]).toBeNull(); // Monday 31 Aug is before the range
+    expect(weeks[0]?.[1]).toEqual({ date: '2026-09-01', total: 3, flagged: 1 });
+    expect(weeks[0]?.[2]).toEqual({ date: '2026-09-02', total: 0, flagged: 0 });
+    expect(weeks[1]?.[0]?.date).toBe('2026-09-07');
+    expect(weeks[1]?.[1]).toBeNull(); // after the range
+    expect(calendarWeeks([])).toEqual([]);
   });
 });

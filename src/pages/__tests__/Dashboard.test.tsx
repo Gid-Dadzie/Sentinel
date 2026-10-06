@@ -29,7 +29,7 @@ function renderDashboard(search = '') {
   );
 }
 
-const mainTable = () => screen.getByRole('table', { name: 'Transactions' });
+const mainTable = () => screen.getByRole('table', { name: 'All transactions' });
 const bodyRows = () => within(mainTable()).getAllByRole('row').slice(1);
 /** Narrows away undefined without a non-null assertion. */
 function must<T>(value: T | undefined): T {
@@ -88,7 +88,7 @@ describe('Dashboard', () => {
     const user = userEvent.setup();
     renderDashboard('?q=TX-10482');
     expect(bodyRows()).toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'TX-10482' })).toBeInTheDocument();
+    expect(within(mainTable()).getByRole('link', { name: 'TX-10482' })).toBeInTheDocument();
 
     await user.clear(screen.getByRole('searchbox'));
     await user.type(screen.getByRole('searchbox'), 'zzz-no-match');
@@ -133,5 +133,42 @@ describe('Dashboard', () => {
     useFraudStore.getState().saveReview('TX-10482', 'legitimate', '');
     renderDashboard('?q=TX-10482');
     expect(bodyRows()[0]).toHaveTextContent('Reviewed: legitimate');
+  });
+
+  it('leads with a review queue of unreviewed flagged transactions, riskiest first', () => {
+    renderDashboard();
+    const queue = within(screen.getByRole('list', { name: 'Transactions to review' }));
+    const flagged = useFraudStore
+      .getState()
+      .transactions.filter((t) => t.riskScore > 25)
+      .sort((a, b) => b.riskScore - a.riskScore);
+    const items = queue.getAllByRole('link');
+    expect(items[0]).toHaveTextContent(flagged[0]?.id ?? '');
+    expect(items[0]).toHaveAttribute('href', `/tx/${flagged[0]?.id}`);
+    expect(
+      screen.getByText('Needs review', { selector: 'dt' }).nextElementSibling,
+    ).toHaveTextContent(String(flagged.length));
+  });
+
+  it('drops reviewed transactions from the queue and shows the empty state when done', () => {
+    renderDashboard();
+    const ids = useFraudStore
+      .getState()
+      .transactions.filter((t) => t.riskScore > 25)
+      .map((t) => t.id);
+    act(() => {
+      for (const id of ids) useFraudStore.getState().saveReview(id, 'legitimate', '');
+    });
+    expect(screen.getByText('All caught up')).toBeInTheDocument();
+    expect(
+      screen.getByText('Needs review', { selector: 'dt' }).nextElementSibling,
+    ).toHaveTextContent('0');
+  });
+
+  it('shows flagged counts per day in an accessible calendar table', () => {
+    renderDashboard();
+    const calendar = within(screen.getByRole('table', { name: 'Flagged by day' }));
+    expect(calendar.getAllByRole('columnheader')).toHaveLength(7);
+    expect(calendar.getByText(/^5 Oct 2026: \d+ flagged of \d+$/)).toBeInTheDocument();
   });
 });

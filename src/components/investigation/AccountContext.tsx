@@ -1,3 +1,4 @@
+import { Activity, ArrowRight, Fingerprint } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { parseLocalTimestamp } from '../../engine';
 import type { ScoredTransaction } from '../../types';
@@ -29,11 +30,12 @@ export function CustomerBaseline({ tx, baseline }: Props) {
   return (
     <section className={shared.card} aria-labelledby="baseline-heading">
       <h2 id="baseline-heading" className={shared.cardTitle}>
+        <Fingerprint size={17} aria-hidden="true" />
         Customer baseline
       </h2>
       <p className={shared.cardDescription}>Built from this account’s earlier transactions only.</p>
       {hasHistory ? (
-        <dl className={styles.facts}>
+        <dl className={shared.facts}>
           <div>
             <dt>Earlier transactions</dt>
             <dd>{history.length}</dd>
@@ -78,8 +80,10 @@ export function CustomerBaseline({ tx, baseline }: Props) {
             <div>
               <dt>Previous transaction</dt>
               <dd>
-                <Link to={`/tx/${previous.id}`}>{previous.id}</Link> in {previous.location.city},{' '}
-                {formatDuration(minutesSincePrevious)} earlier
+                <Link to={`/tx/${previous.id}`} className="mono">
+                  {previous.id}
+                </Link>{' '}
+                in {previous.location.city}, {formatDuration(minutesSincePrevious)} earlier
               </dd>
             </div>
           )}
@@ -99,6 +103,7 @@ export function RecentActivity({ tx, baseline }: Props) {
   return (
     <section className={shared.card} aria-labelledby="activity-heading">
       <h2 id="activity-heading" className={shared.cardTitle}>
+        <Activity size={17} aria-hidden="true" />
         Recent account activity
       </h2>
       <p className={shared.cardDescription}>
@@ -111,7 +116,6 @@ export function RecentActivity({ tx, baseline }: Props) {
               <th scope="col">ID</th>
               <th scope="col">Time</th>
               <th scope="col">Merchant</th>
-              <th scope="col">Location</th>
               <th scope="col">Device</th>
               <th scope="col" className={shared.numeric}>
                 Amount
@@ -131,16 +135,23 @@ export function RecentActivity({ tx, baseline }: Props) {
                   <th scope="row">
                     {isCurrent ? (
                       <>
-                        {row.id} <span className="visually-hidden">(this transaction)</span>
+                        <span className="mono">{row.id}</span>{' '}
+                        <span className="visually-hidden">(this transaction)</span>
                       </>
                     ) : (
-                      <Link to={`/tx/${row.id}`}>{row.id}</Link>
+                      <Link to={`/tx/${row.id}`} className={`${shared.rowLink} mono`}>
+                        {row.id}
+                      </Link>
                     )}
                   </th>
-                  <td className={shared.nowrap}>{formatDateTime(row.timestamp)}</td>
-                  <td>{row.merchant}</td>
-                  <td>{row.location.city}</td>
-                  <td className={shared.nowrap}>{row.deviceId}</td>
+                  <td className={`${shared.nowrap} ${shared.muted}`}>
+                    {formatDateTime(row.timestamp)}
+                  </td>
+                  <td>
+                    {row.merchant}
+                    <span className={styles.subline}>{row.location.city}</span>
+                  </td>
+                  <td className={`${shared.nowrap} mono`}>{row.deviceId}</td>
                   <td className={`${shared.numeric} ${shared.nowrap}`}>
                     {formatMoney(row.amount, row.currency)}
                   </td>
@@ -154,7 +165,10 @@ export function RecentActivity({ tx, baseline }: Props) {
         </table>
       </div>
       <p className={styles.cardFooter}>
-        <Link to={`/customer/${tx.accountId}`}>View full customer profile</Link>
+        <Link to={`/customer/${tx.accountId}`} className={shared.buttonGhost}>
+          View full customer profile
+          <ArrowRight size={15} aria-hidden="true" />
+        </Link>
       </p>
     </section>
   );

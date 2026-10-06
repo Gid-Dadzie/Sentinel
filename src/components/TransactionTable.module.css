@@ -1,100 +1,224 @@
 /* Filters, sorting and paging for the shared transaction table. */
 
-.filters {
+.resultCount {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Toolbar ---- */
+
+.toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-}
-
-.field {
-  display: grid;
-  gap: var(--space-1);
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-.field:first-child {
-  flex: 1 1 14rem;
-}
-
-.field input,
-.field select,
-.pagination button {
-  min-height: 2.25rem;
-  padding: var(--space-1) var(--space-2);
-  font: inherit;
-  font-size: 0.9375rem;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.checkbox {
-  display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 2.25rem;
-  font-size: 0.9375rem;
+  margin: var(--space-4) 0 var(--space-3);
 }
 
-.checkbox input {
-  width: 1.125rem;
-  height: 1.125rem;
+.search {
+  position: relative;
+  flex: 1 1 16rem;
 }
 
-.resultCount {
-  margin: var(--space-3) 0 var(--space-2);
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
   color: var(--text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search input,
+.select select {
+  width: 100%;
+  min-height: 2.375rem;
+  padding: 0 var(--space-3);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
 }
 
-/* ---- Table controls ---- */
+.search input {
+  padding-left: 2.25rem;
+}
+
+.search input::placeholder {
+  color: var(--text-muted);
+}
+
+.select select {
+  padding-right: var(--space-6);
+  cursor: pointer;
+}
+
+.search input:hover,
+.select select:hover {
+  border-color: var(--text-faint);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.375rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle:has(input:checked) {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.toggle input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+/* ---- Table ---- */
+
+.amount {
+  font-weight: 600;
+}
 
 .sortButton {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   padding: 0;
-  font: inherit;
   color: inherit;
   background: none;
   border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
   cursor: pointer;
 }
 
-.sortButton:hover {
+.sortButton:hover,
+.sortActive {
   color: var(--text);
-}
-
-.sortIcon {
-  font-size: 0.6875rem;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  font-size: 0.875rem;
-}
-
-.pagination button {
-  cursor: pointer;
-}
-
-.pagination button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 .review {
   display: block;
-  margin-top: var(--space-1);
-  color: var(--text-muted);
+  margin-top: 2px;
+  color: var(--accent-text);
   font-size: 0.75rem;
+  font-weight: 500;
   white-space: nowrap;
+}
+
+/* ---- Pagination ---- */
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+}
+
+.range,
+.pageOf {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pageControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---- Phones: each row becomes a stacked card ---- */
+
+@media (max-width: 720px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table,
+  .table tbody,
+  .table th,
+  .table td {
+    display: block;
+  }
+
+  .table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table tbody th,
+  .table tbody td {
+    padding: 0 !important;
+    border: 0 !important;
+    text-align: left !important;
+  }
+
+  /* Card layout: ID + amount on top, then who/where/when, then risk + status. */
+  .table tbody td[data-label='Amount'] {
+    grid-row: 1;
+    grid-column: 2;
+    text-align: right !important;
+  }
+
+  .table tbody td[data-label='Time'],
+  .table tbody td[data-label='Location'] {
+    grid-column: 1 / -1;
+    font-size: 0.8125rem;
+  }
+
+  .table tbody td[data-label='Customer'],
+  .table tbody td[data-label='Merchant'] {
+    grid-column: 1 / -1;
+  }
+
+  .table tbody td[data-label='Risk'] {
+    grid-column: 1;
+    margin-top: var(--space-1);
+  }
+
+  .table tbody td[data-label='Status'] {
+    grid-column: 2;
+    margin-top: var(--space-1);
+    text-align: right !important;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
+  .range {
+    display: none;
+  }
 }

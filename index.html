@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <title>Fraud Risk Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Sentinel · Fraud Risk</title>
+    <script>
+      // Apply a saved light/dark override before first paint (see src/utils/theme.ts).
+      try {
+        var t = localStorage.getItem('fraud-dashboard:theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -7,10 +7,11 @@ interface RiskBadgeProps {
   score?: number;
 }
 
-/** Colour plus a text label, so the level is never conveyed by colour alone. */
+/** Colour dot plus a text label, so the level is never conveyed by colour alone. */
 export default function RiskBadge({ level, score }: RiskBadgeProps) {
   return (
     <span className={`${styles.badge} ${styles[level]}`}>
+      <span className={styles.dot} aria-hidden="true" />
       {capitalize(level)}
       {score === undefined ? null : ` · ${score}`}
     </span>

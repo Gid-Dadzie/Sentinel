@@ -4,6 +4,7 @@ import { useFraudStore } from '../../state/useFraudStore';
 import type { RuleConfig } from '../../types';
 import { formatNumber } from '../../utils/format';
 import { getDefaultRule, isRuleModified } from '../../utils/rules';
+import { RULE_ICONS } from '../ruleIcons';
 import styles from './Rules.module.css';
 
 interface RuleEditorProps {
@@ -18,6 +19,7 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
   const ids = { heading: useId(), condition: useId(), points: useId() };
   const defaults = getDefaultRule(rule.id);
   const modified = isRuleModified(rule);
+  const RuleIcon = RULE_ICONS[rule.id];
 
   // The number box keeps its own text so a half-typed value ("" or "-") isn't saved as 0.
   const [draft, setDraft] = useState<string | null>(null);
@@ -35,7 +37,10 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
       aria-labelledby={ids.heading}
     >
       <div className={styles.ruleHeader}>
-        <div>
+        <span className={styles.ruleIcon} aria-hidden="true">
+          <RuleIcon size={18} />
+        </span>
+        <div className={styles.ruleTitle}>
           <h2 id={ids.heading} className={styles.ruleName}>
             {rule.name}
             {modified && <span className={styles.modified}>Changed</span>}

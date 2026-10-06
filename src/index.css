@@ -1,67 +1,171 @@
+/*
+ * Design tokens. Light is the default; dark applies when the OS asks for it
+ * (unless the user forced light) or when the user forces dark.
+ * Theme choice lives on <html data-theme="light|dark">, set by ThemeToggle.
+ */
 :root {
-  --bg: #f6f7f9;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --bg: #f4f5f8;
   --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --border: #d6dae0;
-  --text: #15191e;
-  --text-muted: #4b5563;
-  --accent: #1d4ed8;
-  --focus: #1d4ed8;
-  /* Single-series chart marks; validated for lightness and 3:1 contrast against --surface. */
-  --chart-1: #1d4ed8;
+  --surface-2: #f0f2f5;
+  --surface-3: #e6e9ef;
+  --border: #e2e5eb;
+  --border-strong: #cdd2db;
+  --text: #0f1729;
+  --text-muted: #5b6475;
+  --text-faint: #8a92a3;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef0ff;
+  --accent-text: #3f37c9;
+  --on-accent: #ffffff;
+  --focus: #4f46e5;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-md: 0 1px 3px rgb(16 24 40 / 0.06), 0 4px 12px rgb(16 24 40 / 0.05);
+
+  /* Single-series marks and the sequential heatmap ramp (one hue, light to dark). */
+  --chart-1: #4f46e5;
+  --seq-0: #eef0f4;
+  --seq-1: #c7cbfb;
+  --seq-2: #8c8ff5;
+  --seq-3: #4f46e5;
 
   /* Risk colours are always paired with a text label. Foregrounds meet 4.5:1 on their background. */
-  --risk-low-bg: #dcfce7;
-  --risk-low-fg: #14532d;
-  --risk-medium-bg: #fef3c7;
-  --risk-medium-fg: #713f12;
-  --risk-high-bg: #ffedd5;
-  --risk-high-fg: #7c2d12;
-  --risk-critical-bg: #fee2e2;
-  --risk-critical-fg: #7f1d1d;
+  --risk-low-bg: #e7f6ec;
+  --risk-low-fg: #166534;
+  --risk-low-dot: #22a05a;
+  --risk-medium-bg: #fdf3d7;
+  --risk-medium-fg: #7a4b05;
+  --risk-medium-dot: #d79b0b;
+  --risk-high-bg: #feeadb;
+  --risk-high-fg: #8a3510;
+  --risk-high-dot: #ea6a1f;
+  --risk-critical-bg: #fde4e4;
+  --risk-critical-fg: #8f1d1d;
+  --risk-critical-dot: #dc2f2f;
+
+  /* The sidebar is dark in both themes. */
+  --nav-bg: #0e1220;
+  --nav-surface: #1a2033;
+  --nav-border: #232a3f;
+  --nav-text: #c3c8d6;
+  --nav-text-strong: #ffffff;
+  --nav-muted: #7d859b;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
-  --radius: 6px;
+  --space-8: 2rem;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
 
   color-scheme: light;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-feature-settings: 'cv11', 'ss01';
   line-height: 1.5;
   color: var(--text);
   background: var(--bg);
+  -webkit-font-smoothing: antialiased;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1216;
-    --surface: #171b21;
-    --surface-2: #222831;
-    --border: #343b46;
-    --text: #e8ebef;
-    --text-muted: #a5adb8;
-    --accent: #7aa2ff;
-    --focus: #93b4ff;
-    --chart-1: #5b8af5;
+  :root:not([data-theme='light']) {
+    --bg: #0a0d14;
+    --surface: #11151e;
+    --surface-2: #171c27;
+    --surface-3: #202634;
+    --border: #232a38;
+    --border-strong: #323b4d;
+    --text: #e8eaf0;
+    --text-muted: #9ba3b4;
+    --text-faint: #6b7385;
+    --accent: #8b8ffb;
+    --accent-hover: #a5a8fc;
+    --accent-soft: #1f2245;
+    --accent-text: #aeb1fd;
+    --on-accent: #0b0d1c;
+    --focus: #a5a8fc;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 1px 3px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.25);
 
-    --risk-low-bg: #12341f;
-    --risk-low-fg: #a7f3c0;
-    --risk-medium-bg: #3a2e0c;
-    --risk-medium-fg: #fde68a;
-    --risk-high-bg: #43230d;
-    --risk-high-fg: #fed7aa;
-    --risk-critical-bg: #4a1414;
-    --risk-critical-fg: #fecaca;
+    --chart-1: #7c80f6;
+    --seq-0: #1a1f2b;
+    --seq-1: #2f336b;
+    --seq-2: #5458c4;
+    --seq-3: #8b8ffb;
+
+    --risk-low-bg: #10291b;
+    --risk-low-fg: #9fe5b9;
+    --risk-low-dot: #3fbf75;
+    --risk-medium-bg: #33280a;
+    --risk-medium-fg: #f9d77e;
+    --risk-medium-dot: #e0aa25;
+    --risk-high-bg: #3a1e0e;
+    --risk-high-fg: #fdc29b;
+    --risk-high-dot: #f07f3c;
+    --risk-critical-bg: #3f1213;
+    --risk-critical-fg: #fdb4b4;
+    --risk-critical-dot: #f05252;
+
+    --nav-bg: #080a11;
+    --nav-surface: #151a29;
+    --nav-border: #1a2030;
 
     color-scheme: dark;
   }
+}
+
+/* Same values as above, for a user who forces dark on a light OS. */
+:root[data-theme='dark'] {
+  --bg: #0a0d14;
+  --surface: #11151e;
+  --surface-2: #171c27;
+  --surface-3: #202634;
+  --border: #232a38;
+  --border-strong: #323b4d;
+  --text: #e8eaf0;
+  --text-muted: #9ba3b4;
+  --text-faint: #6b7385;
+  --accent: #8b8ffb;
+  --accent-hover: #a5a8fc;
+  --accent-soft: #1f2245;
+  --accent-text: #aeb1fd;
+  --on-accent: #0b0d1c;
+  --focus: #a5a8fc;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 1px 3px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.25);
+
+  --chart-1: #7c80f6;
+  --seq-0: #1a1f2b;
+  --seq-1: #2f336b;
+  --seq-2: #5458c4;
+  --seq-3: #8b8ffb;
+
+  --risk-low-bg: #10291b;
+  --risk-low-fg: #9fe5b9;
+  --risk-low-dot: #3fbf75;
+  --risk-medium-bg: #33280a;
+  --risk-medium-fg: #f9d77e;
+  --risk-medium-dot: #e0aa25;
+  --risk-high-bg: #3a1e0e;
+  --risk-high-fg: #fdc29b;
+  --risk-high-dot: #f07f3c;
+  --risk-critical-bg: #3f1213;
+  --risk-critical-fg: #fdb4b4;
+  --risk-critical-dot: #f05252;
+
+  --nav-bg: #080a11;
+  --nav-surface: #151a29;
+  --nav-border: #1a2030;
+
+  color-scheme: dark;
 }
 
 *,
@@ -77,13 +181,39 @@ body {
   color: var(--text);
 }
 
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
 a {
-  color: var(--accent);
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
 }
 
 .skip-link {
@@ -92,8 +222,10 @@ a {
   top: -3rem;
   padding: var(--space-2) var(--space-3);
   background: var(--surface);
-  border-radius: var(--radius);
-  z-index: 10;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
 }
 
 .skip-link:focus {
@@ -107,4 +239,13 @@ a {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

@@ -1,6 +1,8 @@
+import { Activity, RotateCcw, Scale } from 'lucide-react';
 import { useMemo } from 'react';
 import RuleEditor from '../components/rules/RuleEditor';
 import styles from '../components/rules/Rules.module.css';
+import PageHeader from '../components/PageHeader';
 import RiskBadge from '../components/RiskBadge';
 import shared from '../components/shared.module.css';
 import { createDefaultRules, scoreAll } from '../engine';
@@ -29,26 +31,25 @@ export default function Rules() {
 
   return (
     <div className={shared.page}>
-      <div className={styles.header}>
-        <div className={shared.intro}>
-          <h1>Rules</h1>
-          <p>
-            Every change re-scores all {formatNumber(transactions.length)} transactions straight
-            away and is saved in this browser.
-          </p>
-        </div>
-        <button
-          type="button"
-          className={styles.reset}
-          disabled={changed === 0}
-          onClick={resetRules}
-        >
-          Reset to defaults
-        </button>
-      </div>
+      <PageHeader
+        title="Rules"
+        meta={`Every change re-scores all ${formatNumber(transactions.length)} transactions straight away and is saved in this browser.`}
+        actions={
+          <button
+            type="button"
+            className={shared.button}
+            disabled={changed === 0}
+            onClick={resetRules}
+          >
+            <RotateCcw size={15} aria-hidden="true" />
+            Reset to defaults
+          </button>
+        }
+      />
 
       <section className={shared.card} aria-labelledby="impact-heading">
         <h2 id="impact-heading" className={shared.cardTitle}>
+          <Activity size={17} aria-hidden="true" />
           Impact of your changes
         </h2>
         <p className={shared.cardDescription}>
@@ -78,6 +79,7 @@ export default function Rules() {
 
       <section className={shared.card} aria-labelledby="bands-heading">
         <h2 id="bands-heading" className={shared.cardTitle}>
+          <Scale size={17} aria-hidden="true" />
           How scores become decisions
         </h2>
         <p className={shared.cardDescription}>

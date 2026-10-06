@@ -1,19 +1,14 @@
+import { Compass, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { DEFAULT_RULES } from '../../engine';
 import { useFraudStore } from '../../state/useFraudStore';
-import type { RuleId, ScoredTransaction } from '../../types';
+import type { ScoredTransaction } from '../../types';
 import type { CustomerProfile, UsageCount } from '../../utils/customer';
 import { capitalize, formatDate, formatDateTime, formatMoney } from '../../utils/format';
 import { VERDICT_SHORT_LABELS } from '../../utils/investigation';
+import { RULE_NAMES } from '../../utils/rules';
 import RiskBadge from '../RiskBadge';
 import shared from '../shared.module.css';
 import styles from './Customer.module.css';
-
-/** Rule names are fixed (only points and on/off are editable), so the defaults are the source. */
-const RULE_NAMES = Object.fromEntries(DEFAULT_RULES.map((r) => [r.id, r.name])) as Record<
-  RuleId,
-  string
->;
 
 /** Flagged transactions, riskiest first, with the rules that fired and any analyst verdict. */
 export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTransaction[] }) {
@@ -25,13 +20,17 @@ export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTrans
   return (
     <section className={shared.card} aria-labelledby="flagged-heading">
       <h2 id="flagged-heading" className={shared.cardTitle}>
+        <ShieldAlert size={17} aria-hidden="true" />
         Flagged transactions
       </h2>
       <p className={shared.cardDescription}>
         Scored medium risk or above with the current rules, riskiest first.
       </p>
       {ordered.length === 0 ? (
-        <p className={styles.none}>Nothing flagged for this customer.</p>
+        <div className={shared.empty}>
+          <ShieldCheck size={28} aria-hidden="true" />
+          <span>Nothing flagged for this customer.</span>
+        </div>
       ) : (
         <ul className={styles.flaggedList}>
           {ordered.map((tx) => {
@@ -39,7 +38,7 @@ export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTrans
             return (
               <li key={tx.id} className={styles.flaggedItem}>
                 <div className={styles.flaggedTop}>
-                  <Link to={`/tx/${tx.id}`} className={styles.flaggedId}>
+                  <Link to={`/tx/${tx.id}`} className={`${styles.flaggedId} mono`}>
                     {tx.id}
                   </Link>
                   <RiskBadge level={tx.riskLevel} score={tx.riskScore} />
@@ -106,6 +105,7 @@ export function BehaviourProfile({ profile }: { profile: CustomerProfile }) {
   return (
     <section className={shared.card} aria-labelledby="behaviour-heading">
       <h2 id="behaviour-heading" className={shared.cardTitle}>
+        <Compass size={17} aria-hidden="true" />
         Usual behaviour
       </h2>
       <p className={shared.cardDescription}>Share of all {total} transactions.</p>
