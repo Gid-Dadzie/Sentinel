@@ -58,6 +58,15 @@ export const DEFAULT_RULES: readonly RuleConfig[] = [
   },
 ];
 
+export const MIN_POINTS = 0;
+export const MAX_POINTS = 100;
+
+/** Whole points between 0 and 100; anything non-numeric becomes 0. */
+export function clampPoints(value: number): number {
+  if (!Number.isFinite(value)) return MIN_POINTS;
+  return Math.min(MAX_POINTS, Math.max(MIN_POINTS, Math.round(value)));
+}
+
 /** Fresh mutable copy of the defaults (for state and the reset button). */
 export function createDefaultRules(): RuleConfig[] {
   return DEFAULT_RULES.map((rule) => ({ ...rule }));
