@@ -1,0 +1,36 @@
+/* A row of headline numbers. */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.tile {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tile dd {
+  margin: 0;
+}
+
+.tileLabel {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tileValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.tileNote {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}

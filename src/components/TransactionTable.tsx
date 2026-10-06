@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { RISK_LEVELS, STATUSES, type ScoredTransaction } from '../../types';
+import { RISK_LEVELS, STATUSES, type ScoredTransaction } from '../types';
 import {
   applyFilters,
   filtersFromParams,
@@ -8,20 +8,32 @@ import {
   paginate,
   type SortKey,
   type TableFilters,
-} from '../../utils/dashboard';
-import { capitalize, formatDateTime, formatMoney, formatNumber } from '../../utils/format';
-import RiskBadge from '../RiskBadge';
-import StatusBadge from '../StatusBadge';
-import styles from './Dashboard.module.css';
-import shared from '../shared.module.css';
+} from '../utils/dashboard';
+import { VERDICT_SHORT_LABELS } from '../utils/investigation';
+import { useFraudStore } from '../state/useFraudStore';
+import { capitalize, formatDateTime, formatMoney, formatNumber } from '../utils/format';
+import RiskBadge from './RiskBadge';
+import StatusBadge from './StatusBadge';
+import styles from './TransactionTable.module.css';
+import shared from './shared.module.css';
 
 const SORT_LABELS: Record<SortKey, string> = { time: 'Time', amount: 'Amount', score: 'Risk' };
 
+interface TransactionTableProps {
+  transactions: readonly ScoredTransaction[];
+  title?: string;
+  /** Hide the customer column when every row belongs to one customer. */
+  showCustomer?: boolean;
+}
+
+/** Filterable, sortable, paged table. Filters live in the page URL. */
 export default function TransactionTable({
   transactions,
-}: {
-  transactions: readonly ScoredTransaction[];
-}) {
+  title = 'Transactions',
+  showCustomer = true,
+}: TransactionTableProps) {
+  const headingId = useId();
+  const reviews = useFraudStore((state) => state.reviews);
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
   const filtered = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
@@ -58,9 +70,9 @@ export default function TransactionTable({
   };
 
   return (
-    <section className={shared.card} aria-labelledby="transactions-heading">
-      <h2 id="transactions-heading" className={shared.cardTitle}>
-        Transactions
+    <section className={shared.card} aria-labelledby={headingId}>
+      <h2 id={headingId} className={shared.cardTitle}>
+        {title}
       </h2>
 
       <form className={styles.filters} role="search" onSubmit={(e) => e.preventDefault()}>
@@ -68,7 +80,7 @@ export default function TransactionTable({
           <span>Search</span>
           <input
             type="search"
-            placeholder="ID, customer, merchant, city"
+            placeholder={showCustomer ? 'ID, customer, merchant, city' : 'ID, merchant, city'}
             defaultValue={filters.query}
             onChange={(e) => update({ query: e.target.value.trim() })}
           />
@@ -118,12 +130,12 @@ export default function TransactionTable({
       </p>
 
       <div className={shared.tableScroll}>
-        <table className={shared.table} aria-labelledby="transactions-heading">
+        <table className={shared.table} aria-labelledby={headingId}>
           <thead>
             <tr>
               <th scope="col">ID</th>
               {sortHeader('time')}
-              <th scope="col">Customer</th>
+              {showCustomer && <th scope="col">Customer</th>}
               <th scope="col">Merchant</th>
               <th scope="col">Location</th>
               {sortHeader('amount', shared.numeric)}
@@ -132,30 +144,38 @@ export default function TransactionTable({
             </tr>
           </thead>
           <tbody>
-            {items.map((tx) => (
-              <tr key={tx.id}>
-                <th scope="row">
-                  <Link to={`/tx/${tx.id}`}>{tx.id}</Link>
-                </th>
-                <td className={shared.nowrap}>{formatDateTime(tx.timestamp)}</td>
-                <td>
-                  <Link to={`/customer/${tx.accountId}`}>{tx.customerName}</Link>
-                </td>
-                <td>{tx.merchant}</td>
-                <td>
-                  {tx.location.city}, {tx.location.country}
-                </td>
-                <td className={`${shared.numeric} ${shared.nowrap}`}>
-                  {formatMoney(tx.amount, tx.currency)}
-                </td>
-                <td>
-                  <RiskBadge level={tx.riskLevel} score={tx.riskScore} />
-                </td>
-                <td>
-                  <StatusBadge status={tx.status} />
-                </td>
-              </tr>
-            ))}
+            {items.map((tx) => {
+              const review = reviews[tx.id];
+              return (
+                <tr key={tx.id}>
+                  <th scope="row">
+                    <Link to={`/tx/${tx.id}`}>{tx.id}</Link>
+                  </th>
+                  <td className={shared.nowrap}>{formatDateTime(tx.timestamp)}</td>
+                  {showCustomer && (
+                    <td>
+                      <Link to={`/customer/${tx.accountId}`}>{tx.customerName}</Link>
+                    </td>
+                  )}
+                  <td>{tx.merchant}</td>
+                  <td>
+                    {tx.location.city}, {tx.location.country}
+                  </td>
+                  <td className={`${shared.numeric} ${shared.nowrap}`}>
+                    {formatMoney(tx.amount, tx.currency)}
+                  </td>
+                  <td>
+                    <RiskBadge level={tx.riskLevel} score={tx.riskScore} />
+                  </td>
+                  <td>
+                    <StatusBadge status={tx.status} />
+                    {review && (
+                      <span className={styles.review}>{VERDICT_SHORT_LABELS[review.verdict]}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {items.length === 0 && <p className={shared.empty}>No transactions match these filters.</p>}

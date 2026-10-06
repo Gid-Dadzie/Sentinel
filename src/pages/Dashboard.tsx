@@ -3,7 +3,7 @@ import { DailyFlaggedChart, RiskDistributionChart } from '../components/dashboar
 import styles from '../components/dashboard/Dashboard.module.css';
 import shared from '../components/shared.module.css';
 import SummaryTiles from '../components/dashboard/SummaryTiles';
-import TransactionTable from '../components/dashboard/TransactionTable';
+import TransactionTable from '../components/TransactionTable';
 import { useFraudStore } from '../state/useFraudStore';
 import { countByRiskLevel, dailyCounts, summarize } from '../utils/dashboard';
 import { formatDate, formatShortDate } from '../utils/format';

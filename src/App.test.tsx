@@ -33,4 +33,11 @@ describe('App shell', () => {
       await screen.findByRole('heading', { level: 1, name: 'Transaction TX-10482' }, LAZY_PAGE),
     ).toBeInTheDocument();
   });
+
+  it('keeps the Dashboard tab highlighted on drill-down pages', async () => {
+    renderAt('/customer/ACC-2001');
+    await screen.findByRole('heading', { level: 1, name: 'John Mensah' }, LAZY_PAGE);
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveClass('active');
+    expect(screen.getByRole('link', { name: 'Rules' })).not.toHaveClass('active');
+  });
 });

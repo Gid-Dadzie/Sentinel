@@ -43,6 +43,7 @@ describe('Dashboard', () => {
   beforeEach(() => {
     localStorage.clear();
     useFraudStore.getState().resetRules();
+    useFraudStore.setState({ reviews: {} });
   });
 
   it('shows summary tiles derived from the store', () => {
@@ -126,5 +127,11 @@ describe('Dashboard', () => {
 
     act(() => useFraudStore.getState().updateRule('time', { enabled: false }));
     expect(bodyRows()[0]).toHaveTextContent(`· ${before.riskScore - 10}`);
+  });
+
+  it('marks reviewed transactions in the status column', () => {
+    useFraudStore.getState().saveReview('TX-10482', 'legitimate', '');
+    renderDashboard('?q=TX-10482');
+    expect(bodyRows()[0]).toHaveTextContent('Reviewed: legitimate');
   });
 });

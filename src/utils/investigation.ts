@@ -6,6 +6,12 @@ export const VERDICT_LABELS: Record<Verdict, string> = {
   legitimate: 'Legitimate (false positive)',
 };
 
+/** Compact form for table cells. */
+export const VERDICT_SHORT_LABELS: Record<Verdict, string> = {
+  fraud: 'Reviewed: fraud',
+  legitimate: 'Reviewed: legitimate',
+};
+
 export interface AccountBaseline {
   /** Same account, strictly earlier, oldest first: exactly what the engine saw. */
   history: ScoredTransaction[];

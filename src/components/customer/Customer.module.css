@@ -1,0 +1,143 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.headerMeta {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.back {
+  font-size: 0.875rem;
+}
+
+.none {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+}
+
+/* ---- Flagged list ---- */
+
+.flaggedList {
+  display: grid;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flaggedItem {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.flaggedTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.flaggedId {
+  font-weight: 600;
+}
+
+.flaggedMeta,
+.flaggedRules,
+.flaggedReview {
+  margin: var(--space-1) 0 0;
+  font-size: 0.875rem;
+}
+
+.flaggedRules,
+.flaggedReview {
+  color: var(--text-muted);
+}
+
+.flaggedReview {
+  font-weight: 600;
+}
+
+/* ---- Usage lists ---- */
+
+.usageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-3);
+}
+
+.usageTitle {
+  margin: 0 0 var(--space-2);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.usageList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.usageRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+}
+
+.usageCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.usageBar {
+  height: 0.375rem;
+  margin-top: 2px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.usageBar > div {
+  height: 100%;
+  background: var(--chart-1);
+  border-radius: 999px;
+}
+
+.usageDates {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.highest {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
