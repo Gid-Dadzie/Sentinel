@@ -13,6 +13,7 @@ import { capitalize, formatDateTime, formatMoney, formatNumber } from '../../uti
 import RiskBadge from '../RiskBadge';
 import StatusBadge from '../StatusBadge';
 import styles from './Dashboard.module.css';
+import shared from '../shared.module.css';
 
 const SORT_LABELS: Record<SortKey, string> = { time: 'Time', amount: 'Amount', score: 'Risk' };
 
@@ -57,8 +58,8 @@ export default function TransactionTable({
   };
 
   return (
-    <section className={styles.card} aria-labelledby="transactions-heading">
-      <h2 id="transactions-heading" className={styles.cardTitle}>
+    <section className={shared.card} aria-labelledby="transactions-heading">
+      <h2 id="transactions-heading" className={shared.cardTitle}>
         Transactions
       </h2>
 
@@ -116,8 +117,8 @@ export default function TransactionTable({
           : `${formatNumber(filtered.length)} of ${formatNumber(transactions.length)} transactions`}
       </p>
 
-      <div className={styles.tableScroll}>
-        <table className={styles.table} aria-labelledby="transactions-heading">
+      <div className={shared.tableScroll}>
+        <table className={shared.table} aria-labelledby="transactions-heading">
           <thead>
             <tr>
               <th scope="col">ID</th>
@@ -125,7 +126,7 @@ export default function TransactionTable({
               <th scope="col">Customer</th>
               <th scope="col">Merchant</th>
               <th scope="col">Location</th>
-              {sortHeader('amount', styles.numeric)}
+              {sortHeader('amount', shared.numeric)}
               {sortHeader('score')}
               <th scope="col">Status</th>
             </tr>
@@ -136,7 +137,7 @@ export default function TransactionTable({
                 <th scope="row">
                   <Link to={`/tx/${tx.id}`}>{tx.id}</Link>
                 </th>
-                <td className={styles.nowrap}>{formatDateTime(tx.timestamp)}</td>
+                <td className={shared.nowrap}>{formatDateTime(tx.timestamp)}</td>
                 <td>
                   <Link to={`/customer/${tx.accountId}`}>{tx.customerName}</Link>
                 </td>
@@ -144,7 +145,7 @@ export default function TransactionTable({
                 <td>
                   {tx.location.city}, {tx.location.country}
                 </td>
-                <td className={`${styles.numeric} ${styles.nowrap}`}>
+                <td className={`${shared.numeric} ${shared.nowrap}`}>
                   {formatMoney(tx.amount, tx.currency)}
                 </td>
                 <td>
@@ -157,7 +158,7 @@ export default function TransactionTable({
             ))}
           </tbody>
         </table>
-        {items.length === 0 && <p className={styles.empty}>No transactions match these filters.</p>}
+        {items.length === 0 && <p className={shared.empty}>No transactions match these filters.</p>}
       </div>
 
       <nav className={styles.pagination} aria-label="Pagination">

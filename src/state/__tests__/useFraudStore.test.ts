@@ -1,5 +1,5 @@
 import { createDefaultRules } from '../../engine';
-import { RULES_STORAGE_KEY, sanitizeRules } from '../rulesStorage';
+import { RULES_STORAGE_KEY, sanitizeReviews, sanitizeRules } from '../rulesStorage';
 import { RAW_TRANSACTIONS, useFraudStore } from '../useFraudStore';
 
 const reasonIds = () =>
@@ -10,6 +10,7 @@ describe('useFraudStore', () => {
   beforeEach(() => {
     localStorage.clear();
     useFraudStore.getState().resetRules();
+    useFraudStore.setState({ reviews: {} });
   });
 
   it('scores every generated transaction on load', () => {
@@ -43,12 +44,12 @@ describe('useFraudStore', () => {
     expect(useFraudStore.getState().rules).toEqual(createDefaultRules());
   });
 
-  it('persists only the rules to localStorage', () => {
+  it('persists only rules and reviews to localStorage', () => {
     useFraudStore.getState().updateRule('rapid', { points: 33 });
     const saved = JSON.parse(localStorage.getItem(RULES_STORAGE_KEY) ?? '{}') as {
       state: Record<string, unknown>;
     };
-    expect(Object.keys(saved.state)).toEqual(['rules']);
+    expect(Object.keys(saved.state)).toEqual(['rules', 'reviews']);
     expect(JSON.stringify(saved.state.rules)).toContain('"points":33');
   });
 
@@ -69,6 +70,47 @@ describe('useFraudStore', () => {
     );
     await useFraudStore.persist.rehydrate();
     expect(useFraudStore.getState().rules).toEqual(createDefaultRules());
+  });
+});
+
+describe('reviews', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useFraudStore.setState({ reviews: {} });
+  });
+
+  it('saves a trimmed review with a timestamp, independent of rule changes', () => {
+    useFraudStore.getState().saveReview('TX-10482', 'fraud', '  card stolen  ');
+    useFraudStore.getState().updateRule('time', { enabled: false });
+    const review = useFraudStore.getState().reviews['TX-10482'];
+    expect(review).toMatchObject({ verdict: 'fraud', note: 'card stolen' });
+    expect(Number.isNaN(Date.parse(review?.reviewedAt ?? ''))).toBe(false);
+  });
+
+  it('clears a review', () => {
+    useFraudStore.getState().saveReview('TX-10482', 'legitimate', '');
+    useFraudStore.getState().clearReview('TX-10482');
+    expect(useFraudStore.getState().reviews).toEqual({});
+  });
+
+  it('rehydrates saved reviews', async () => {
+    const reviews = { 'TX-1': { verdict: 'fraud', note: 'x', reviewedAt: '2026-10-06T10:00:00Z' } };
+    localStorage.setItem(RULES_STORAGE_KEY, JSON.stringify({ state: { reviews }, version: 1 }));
+    await useFraudStore.persist.rehydrate();
+    expect(useFraudStore.getState().reviews).toEqual(reviews);
+    expect(useFraudStore.getState().rules).toEqual(createDefaultRules());
+  });
+
+  it('sanitizeReviews drops malformed entries', () => {
+    expect(
+      sanitizeReviews({
+        ok: { verdict: 'legitimate', note: 5, reviewedAt: 'now' },
+        badVerdict: { verdict: 'maybe', note: '', reviewedAt: 'now' },
+        noDate: { verdict: 'fraud', note: '' },
+        junk: 'x',
+      }),
+    ).toEqual({ ok: { verdict: 'legitimate', note: '', reviewedAt: 'now' } });
+    expect(sanitizeReviews(['x'])).toEqual({});
   });
 });
 

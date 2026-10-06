@@ -14,6 +14,7 @@ import {
 import type { DailyCount, RiskLevelCount } from '../../utils/dashboard';
 import { capitalize, formatDate, formatShortDate } from '../../utils/format';
 import styles from './Dashboard.module.css';
+import shared from '../shared.module.css';
 
 // Recharts writes these straight onto SVG attributes, so CSS variables keep both themes working.
 const AXIS_TICK = { fill: 'var(--text-muted)', fontSize: 12 };
@@ -38,10 +39,10 @@ interface ChartCardProps {
 
 function ChartCard({ title, description, table, children }: ChartCardProps) {
   return (
-    <figure className={styles.card}>
+    <figure className={shared.card}>
       <figcaption>
-        <h2 className={styles.cardTitle}>{title}</h2>
-        <p className={styles.cardDescription}>{description}</p>
+        <h2 className={shared.cardTitle}>{title}</h2>
+        <p className={shared.cardDescription}>{description}</p>
       </figcaption>
       <div className={styles.chart} aria-hidden="true">
         {children}

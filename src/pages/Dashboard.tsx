@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { DailyFlaggedChart, RiskDistributionChart } from '../components/dashboard/Charts';
 import styles from '../components/dashboard/Dashboard.module.css';
+import shared from '../components/shared.module.css';
 import SummaryTiles from '../components/dashboard/SummaryTiles';
 import TransactionTable from '../components/dashboard/TransactionTable';
 import { useFraudStore } from '../state/useFraudStore';
@@ -24,8 +25,8 @@ export default function Dashboard() {
   const period = first && last ? `${formatShortDate(first)} – ${formatDate(last)}` : 'No data';
 
   return (
-    <div className={styles.page}>
-      <div className={styles.intro}>
+    <div className={shared.page}>
+      <div className={shared.intro}>
         <h1>Dashboard</h1>
         <p>Every transaction is scored live against the current rules.</p>
       </div>

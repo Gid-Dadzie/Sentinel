@@ -1,10 +1,13 @@
+import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Investigation from './pages/Investigation';
-import CustomerProfile from './pages/CustomerProfile';
-import Rules from './pages/Rules';
 import NotFound from './pages/NotFound';
+
+// Pages load on demand so the charting library only ships with the dashboard.
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Investigation = lazy(() => import('./pages/Investigation'));
+const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
+const Rules = lazy(() => import('./pages/Rules'));
 
 export default function App() {
   return (

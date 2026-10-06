@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import styles from './Layout.module.css';
 
@@ -22,7 +23,9 @@ export default function Layout() {
         </nav>
       </header>
       <main id="main" className={styles.main}>
-        <Outlet />
+        <Suspense fallback={<p role="status">Loading…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
     </>
   );

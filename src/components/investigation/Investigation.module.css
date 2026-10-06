@@ -1,0 +1,272 @@
+.back {
+  font-size: 0.875rem;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.headerMeta {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.headerBadges {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.column {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cardFooter {
+  margin: var(--space-3) 0 0;
+  font-size: 0.875rem;
+}
+
+/* ---- Score breakdown ---- */
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.score {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreMax {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.meter {
+  height: 0.5rem;
+  margin: var(--space-3) 0;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.meterFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.low {
+  background: var(--risk-low-fg);
+}
+
+.medium {
+  background: var(--risk-medium-fg);
+}
+
+.high {
+  background: var(--risk-high-fg);
+}
+
+.critical {
+  background: var(--risk-critical-fg);
+}
+
+.outcomes {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outcome {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.outcomeText {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.points {
+  padding: var(--space-1) 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.pointsOn {
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+}
+
+/* ---- Facts lists ---- */
+
+.facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+.facts > div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.facts dt {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.aside {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.newTag {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  background: var(--risk-high-bg);
+  color: var(--risk-high-fg);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.currentRow {
+  background: var(--surface-2);
+}
+
+/* ---- Review form ---- */
+
+.reviewForm {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.verdicts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.verdicts legend {
+  margin-bottom: var(--space-1);
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.radio input {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.noteField {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.noteField textarea {
+  padding: var(--space-2);
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.primary,
+.secondary {
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-4);
+  font: inherit;
+  font-size: 0.9375rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.primary {
+  color: var(--surface);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  font-weight: 600;
+}
+
+.secondary {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.message {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}

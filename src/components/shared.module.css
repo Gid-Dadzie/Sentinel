@@ -1,0 +1,84 @@
+/* Page, card and table styles shared by every page. */
+
+.page {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.intro h1 {
+  margin: 0;
+}
+
+.intro p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.card {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.cardDescription {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table thead th {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.table .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--space-4) 0;
+  text-align: center;
+  color: var(--text-muted);
+}

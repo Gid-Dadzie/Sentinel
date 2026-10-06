@@ -54,3 +54,13 @@ export interface FraudResult {
   score: number;
   reasons: FraudReason[];
 }
+
+export const VERDICTS = ['fraud', 'legitimate'] as const;
+export type Verdict = (typeof VERDICTS)[number];
+
+/** An analyst's decision on one transaction, kept separately from the engine's score. */
+export interface Review {
+  verdict: Verdict;
+  note: string;
+  reviewedAt: string; // ISO timestamp of when the analyst saved it
+}
