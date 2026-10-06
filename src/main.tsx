@@ -7,12 +7,15 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import './index.css';
 
+/** Vite's base ("/" locally, "/Sentinel/" on GitHub Pages) without the trailing slash. */
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
 const root = document.getElementById('root');
 if (!root) throw new Error('Root element #root not found');
 
 createRoot(root).render(
   <StrictMode>
-    <BrowserRouter future={routerFuture}>
+    <BrowserRouter basename={basename} future={routerFuture}>
       <App />
     </BrowserRouter>
   </StrictMode>,

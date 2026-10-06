@@ -1,5 +1,7 @@
 {
-  "name": "fraud-dashboard",
+  "name": "sentinel",
+  "description": "Fraud risk dashboard that scores every transaction live against editable rules.",
+  "license": "MIT",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -28,6 +30,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^22.20.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
