@@ -40,4 +40,10 @@ describe('App shell', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveClass('active');
     expect(screen.getByRole('link', { name: 'Rules' })).not.toHaveClass('active');
   });
+
+  it('renders the rules route with its tab highlighted', async () => {
+    renderAt('/rules');
+    await screen.findByRole('heading', { level: 1, name: 'Rules' }, LAZY_PAGE);
+    expect(screen.getByRole('link', { name: 'Rules' })).toHaveClass('active');
+  });
 });
