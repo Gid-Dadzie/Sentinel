@@ -7,6 +7,8 @@
   --text-muted: #4b5563;
   --accent: #1d4ed8;
   --focus: #1d4ed8;
+  /* Single-series chart marks; validated for lightness and 3:1 contrast against --surface. */
+  --chart-1: #1d4ed8;
 
   /* Risk colours are always paired with a text label. Foregrounds meet 4.5:1 on their background. */
   --risk-low-bg: #dcfce7;
@@ -47,6 +49,7 @@
     --text-muted: #a5adb8;
     --accent: #7aa2ff;
     --focus: #93b4ff;
+    --chart-1: #5b8af5;
 
     --risk-low-bg: #12341f;
     --risk-low-fg: #a7f3c0;

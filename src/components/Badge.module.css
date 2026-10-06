@@ -1,0 +1,37 @@
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.low {
+  background: var(--risk-low-bg);
+  color: var(--risk-low-fg);
+}
+
+.medium {
+  background: var(--risk-medium-bg);
+  color: var(--risk-medium-fg);
+}
+
+.high {
+  background: var(--risk-high-bg);
+  color: var(--risk-high-fg);
+}
+
+.critical {
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+}
+
+/* Status is shown in neutral ink so it never competes with the risk colours. */
+.status {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
