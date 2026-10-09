@@ -6,17 +6,22 @@ import {
   ChevronRight,
   Search,
   SearchX,
+  X,
 } from 'lucide-react';
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useFraudStore } from '../state/useFraudStore';
 import { RISK_LEVELS, STATUSES, type ScoredTransaction } from '../types';
 import {
+  DEFAULT_FILTERS,
   PAGE_SIZE,
   applyFilters,
   filtersFromParams,
   filtersToParams,
+  hasActiveFilters,
+  listCountries,
   paginate,
+  parseMinAmount,
   type SortKey,
   type TableFilters,
 } from '../utils/dashboard';
@@ -48,12 +53,22 @@ export default function TransactionTable({
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
   const filtered = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
   const { items, page, pageCount } = paginate(filtered, filters.page);
+  const countries = useMemo(() => listCountries(transactions), [transactions]);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const minAmountRef = useRef<HTMLInputElement>(null);
 
   const setFilters = (next: TableFilters) =>
     setSearchParams(filtersToParams(next), { replace: true });
   /** Any change other than paging goes back to page 1. */
   const update = (patch: Partial<TableFilters>) => setFilters({ ...filters, page: 1, ...patch });
   const goToPage = (target: number) => setFilters({ ...filters, page: target });
+  const filtering = hasActiveFilters(filters);
+  /** Keeps the sort. The typed-in inputs are uncontrolled, so they are emptied directly. */
+  const clearFilters = () => {
+    setFilters({ ...DEFAULT_FILTERS, sort: filters.sort, dir: filters.dir });
+    if (searchRef.current) searchRef.current.value = '';
+    if (minAmountRef.current) minAmountRef.current.value = '';
+  };
 
   const toggleSort = (key: SortKey) =>
     update({
@@ -107,6 +122,7 @@ export default function TransactionTable({
             placeholder={
               showCustomer ? 'Search ID, customer, merchant, city' : 'Search ID, merchant, city'
             }
+            ref={searchRef}
             defaultValue={filters.query}
             onChange={(e) => update({ query: e.target.value.trim() })}
           />
@@ -139,6 +155,39 @@ export default function TransactionTable({
             ))}
           </select>
         </label>
+        <label className={styles.select}>
+          <span className="visually-hidden">Country</span>
+          <select value={filters.country} onChange={(e) => update({ country: e.target.value })}>
+            <option value="all">All countries</option>
+            {countries.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Min GHS</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step="any"
+            aria-label="Minimum amount (GHS)"
+            ref={minAmountRef}
+            defaultValue={filters.minAmount ?? ''}
+            onChange={(e) => update({ minAmount: parseMinAmount(e.target.value) })}
+          />
+        </label>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>From</span>
+          <input
+            type="date"
+            aria-label="From date"
+            value={filters.from}
+            onChange={(e) => update({ from: e.target.value })}
+          />
+        </label>
         <label className={styles.toggle}>
           <input
             type="checkbox"
@@ -147,6 +196,12 @@ export default function TransactionTable({
           />
           Flagged only
         </label>
+        {filtering && (
+          <button type="button" className={shared.button} onClick={clearFilters}>
+            <X size={15} aria-hidden="true" />
+            Clear filters
+          </button>
+        )}
       </form>
 
       <div className={shared.tableScroll}>
@@ -210,7 +265,7 @@ export default function TransactionTable({
         {items.length === 0 && (
           <div className={shared.empty}>
             <SearchX size={28} aria-hidden="true" />
-            <span>No transactions match these filters.</span>
+            <span>No transactions match these filters. Clear a filter to see more.</span>
           </div>
         )}
       </div>

@@ -1,6 +1,9 @@
 import { compareChronological, isFlagged } from '../engine';
 import type { ScoredTransaction } from '../types';
 
+/** How many of the latest transactions make up the customer's current risk. */
+export const CURRENT_RISK_WINDOW = 5;
+
 export interface UsageCount {
   name: string;
   count: number;
@@ -15,6 +18,9 @@ export interface CustomerProfile {
   transactions: ScoredTransaction[];
   totalAmount: number;
   averageAmount: number;
+  largestAmount: number;
+  /** Rounded average score of the last 5 transactions; its level is the customer's current risk. */
+  currentScore: number;
   flagged: ScoredTransaction[];
   maxScore: number;
   firstSeen: string;
@@ -57,12 +63,15 @@ export function getCustomerProfile(
   if (!first || !last) return null;
 
   const totalAmount = own.reduce((sum, tx) => sum + tx.amount, 0);
+  const recent = own.slice(-CURRENT_RISK_WINDOW);
   return {
     accountId,
     name: last.customerName,
     transactions: own,
     totalAmount,
     averageAmount: totalAmount / own.length,
+    largestAmount: Math.max(...own.map((tx) => tx.amount)),
+    currentScore: Math.round(recent.reduce((sum, tx) => sum + tx.riskScore, 0) / recent.length),
     flagged: own.filter((tx) => isFlagged(tx.riskScore)),
     maxScore: Math.max(...own.map((tx) => tx.riskScore)),
     firstSeen: first.timestamp,

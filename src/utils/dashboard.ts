@@ -13,7 +13,9 @@ export interface DashboardSummary {
   flagged: number;
   declined: number;
   pending: number;
-  /** Sum of flagged amounts (all generated data is in one currency). */
+  /** Sum of all amounts (all generated data is in one currency). */
+  totalAmount: number;
+  /** Sum of flagged amounts. */
   flaggedAmount: number;
 }
 
@@ -23,9 +25,11 @@ export function summarize(transactions: readonly ScoredTransaction[]): Dashboard
     flagged: 0,
     declined: 0,
     pending: 0,
+    totalAmount: 0,
     flaggedAmount: 0,
   };
   for (const tx of transactions) {
+    summary.totalAmount += tx.amount;
     if (isFlagged(tx.riskScore)) {
       summary.flagged += 1;
       summary.flaggedAmount += tx.amount;
@@ -140,6 +144,12 @@ export interface TableFilters {
   query: string;
   risk: RiskLevel | 'all';
   status: Status | 'all';
+  /** Country name, or 'all'. */
+  country: string;
+  /** Smallest amount to show, or null for no minimum. */
+  minAmount: number | null;
+  /** Earliest date to show ("2026-09-15"), or '' for no limit. */
+  from: string;
   flaggedOnly: boolean;
   sort: SortKey;
   dir: SortDir;
@@ -150,13 +160,25 @@ export const DEFAULT_FILTERS: Readonly<TableFilters> = {
   query: '',
   risk: 'all',
   status: 'all',
+  country: 'all',
+  minAmount: null,
+  from: '',
   flaggedOnly: false,
   sort: 'time',
   dir: 'desc',
   page: 1,
 };
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 12;
+
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A positive amount from the URL or an input, else null. */
+export function parseMinAmount(value: string | null): number | null {
+  if (!value) return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
 
 function oneOf<T extends string>(options: readonly T[], value: string | null): T | undefined {
   return options.find((option) => option === value);
@@ -165,10 +187,14 @@ function oneOf<T extends string>(options: readonly T[], value: string | null): T
 /** Reads filters from the URL; anything missing or invalid falls back to the default. */
 export function filtersFromParams(params: URLSearchParams): TableFilters {
   const page = Number(params.get('page'));
+  const from = params.get('from') ?? '';
   return {
     query: params.get('q')?.trim() ?? DEFAULT_FILTERS.query,
     risk: oneOf(RISK_LEVELS, params.get('risk')) ?? DEFAULT_FILTERS.risk,
     status: oneOf(STATUSES, params.get('status')) ?? DEFAULT_FILTERS.status,
+    country: params.get('country')?.trim() || DEFAULT_FILTERS.country,
+    minAmount: parseMinAmount(params.get('min')),
+    from: DATE_PATTERN.test(from) ? from : DEFAULT_FILTERS.from,
     flaggedOnly: params.get('flagged') === '1',
     sort: oneOf(SORT_KEYS, params.get('sort')) ?? DEFAULT_FILTERS.sort,
     dir: oneOf(['asc', 'desc'] as const, params.get('dir')) ?? DEFAULT_FILTERS.dir,
@@ -182,6 +208,9 @@ export function filtersToParams(filters: TableFilters): URLSearchParams {
   if (filters.query) params.set('q', filters.query);
   if (filters.risk !== 'all') params.set('risk', filters.risk);
   if (filters.status !== 'all') params.set('status', filters.status);
+  if (filters.country !== 'all') params.set('country', filters.country);
+  if (filters.minAmount !== null) params.set('min', String(filters.minAmount));
+  if (filters.from) params.set('from', filters.from);
   if (filters.flaggedOnly) params.set('flagged', '1');
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set('sort', filters.sort);
   if (filters.dir !== DEFAULT_FILTERS.dir) params.set('dir', filters.dir);
@@ -215,6 +244,9 @@ export function applyFilters(
       (tx) =>
         (filters.risk === 'all' || tx.riskLevel === filters.risk) &&
         (filters.status === 'all' || tx.status === filters.status) &&
+        (filters.country === 'all' || tx.location.country === filters.country) &&
+        (filters.minAmount === null || tx.amount >= filters.minAmount) &&
+        (!filters.from || tx.timestamp.slice(0, 10) >= filters.from) &&
         (!filters.flaggedOnly || isFlagged(tx.riskScore)) &&
         matchesQuery(tx, filters.query),
     )
@@ -225,6 +257,26 @@ export interface Page<T> {
   items: T[];
   page: number;
   pageCount: number;
+}
+
+/** True when any filter (not sorting or paging) narrows the list. */
+export function hasActiveFilters(filters: TableFilters): boolean {
+  return (
+    filters.query !== DEFAULT_FILTERS.query ||
+    filters.risk !== DEFAULT_FILTERS.risk ||
+    filters.status !== DEFAULT_FILTERS.status ||
+    filters.country !== DEFAULT_FILTERS.country ||
+    filters.minAmount !== DEFAULT_FILTERS.minAmount ||
+    filters.from !== DEFAULT_FILTERS.from ||
+    filters.flaggedOnly !== DEFAULT_FILTERS.flaggedOnly
+  );
+}
+
+/** Distinct countries in the list, alphabetical, for the country filter. */
+export function listCountries(transactions: readonly ScoredTransaction[]): string[] {
+  return [...new Set(transactions.map((tx) => tx.location.country))].sort((a, b) =>
+    a.localeCompare(b),
+  );
 }
 
 /** Clamps the requested page into range; an empty list still has one (empty) page. */

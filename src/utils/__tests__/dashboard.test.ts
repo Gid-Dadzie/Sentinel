@@ -11,6 +11,8 @@ import {
   dailyCounts,
   filtersFromParams,
   filtersToParams,
+  hasActiveFilters,
+  listCountries,
   paginate,
   summarize,
   type TableFilters,
@@ -33,13 +35,14 @@ function scored(
 const filters = (patch: Partial<TableFilters>): TableFilters => ({ ...DEFAULT_FILTERS, ...patch });
 
 describe('summarize', () => {
-  it('counts flagged, declined and pending and sums flagged amounts', () => {
+  it('counts flagged, declined and pending and sums all and flagged amounts', () => {
     const txs = [scored(10, { amount: 100 }), scored(30, { amount: 200 }), scored(60), scored(90)];
     expect(summarize(txs)).toEqual({
       total: 4,
       flagged: 3,
       declined: 1,
       pending: 1,
+      totalAmount: 500,
       flaggedAmount: 400,
     });
   });
@@ -50,6 +53,7 @@ describe('summarize', () => {
       flagged: 0,
       declined: 0,
       pending: 0,
+      totalAmount: 0,
       flaggedAmount: 0,
     });
   });
@@ -83,12 +87,15 @@ describe('dailyCounts', () => {
 describe('URL filters', () => {
   it('parses valid params', () => {
     const params = new URLSearchParams(
-      'q=%20kofi%20&risk=high&status=pending&flagged=1&sort=score&dir=asc&page=3',
+      'q=%20kofi%20&risk=high&status=pending&country=Nigeria&min=1500&from=2026-09-15&flagged=1&sort=score&dir=asc&page=3',
     );
     expect(filtersFromParams(params)).toEqual({
       query: 'kofi',
       risk: 'high',
       status: 'pending',
+      country: 'Nigeria',
+      minAmount: 1500,
+      from: '2026-09-15',
       flaggedOnly: true,
       sort: 'score',
       dir: 'asc',
@@ -97,14 +104,24 @@ describe('URL filters', () => {
   });
 
   it('falls back to defaults for invalid values', () => {
-    const params = new URLSearchParams('risk=extreme&status=x&sort=name&dir=up&page=-2');
+    const params = new URLSearchParams(
+      'risk=extreme&status=x&min=-5&from=15/09/2026&sort=name&dir=up&page=-2',
+    );
     expect(filtersFromParams(params)).toEqual(DEFAULT_FILTERS);
     expect(filtersFromParams(new URLSearchParams('page=1.5')).page).toBe(1);
   });
 
   it('writes nothing for the defaults and round-trips the rest', () => {
     expect(filtersToParams(DEFAULT_FILTERS).toString()).toBe('');
-    const custom = filters({ query: 'acc', risk: 'critical', flaggedOnly: true, page: 2 });
+    const custom = filters({
+      query: 'acc',
+      risk: 'critical',
+      country: 'Ghana',
+      minAmount: 250.5,
+      from: '2026-09-02',
+      flaggedOnly: true,
+      page: 2,
+    });
     expect(filtersFromParams(filtersToParams(custom))).toEqual(custom);
   });
 });
@@ -148,6 +165,20 @@ describe('applyFilters', () => {
     expect(ids(applyFilters(all, filters({ flaggedOnly: true })))).toEqual(['TX-C', 'TX-A']);
   });
 
+  it('filters by country, minimum amount and from date', () => {
+    expect(ids(applyFilters(all, filters({ country: 'Nigeria' })))).toEqual(['TX-C']);
+    expect(ids(applyFilters(all, filters({ minAmount: 600 })))).toEqual(['TX-B']);
+    expect(ids(applyFilters(all, filters({ minAmount: 500 })))).toEqual(['TX-C', 'TX-B', 'TX-A']);
+    expect(ids(applyFilters(all, filters({ from: '2026-09-02' })))).toEqual(['TX-C', 'TX-B']);
+  });
+
+  it('lists countries alphabetically and knows when filters are active', () => {
+    expect(listCountries(all)).toEqual(['Ghana', 'Nigeria']);
+    expect(hasActiveFilters(DEFAULT_FILTERS)).toBe(false);
+    expect(hasActiveFilters(filters({ sort: 'amount', page: 3 }))).toBe(false);
+    expect(hasActiveFilters(filters({ minAmount: 10 }))).toBe(true);
+  });
+
   it('sorts by amount and score, breaking ties chronologically', () => {
     expect(ids(applyFilters(all, filters({ sort: 'amount', dir: 'asc' })))).toEqual([
       'TX-A',
@@ -172,12 +203,17 @@ describe('applyFilters', () => {
 describe('paginate', () => {
   const items = Array.from({ length: 45 }, (_, i) => i);
 
-  it('slices pages and reports the page count', () => {
-    expect(paginate(items, 3)).toEqual({ items: [40, 41, 42, 43, 44], page: 3, pageCount: 3 });
+  it('shows 12 per page by default and reports the page count', () => {
+    expect(paginate(items, 4)).toEqual({
+      items: [36, 37, 38, 39, 40, 41, 42, 43, 44],
+      page: 4,
+      pageCount: 4,
+    });
+    expect(paginate(items, 2, 20).items).toHaveLength(20);
   });
 
   it('clamps out-of-range pages', () => {
-    expect(paginate(items, 99).page).toBe(3);
+    expect(paginate(items, 99).page).toBe(4);
     expect(paginate(items, 0).page).toBe(1);
     expect(paginate([], 4)).toEqual({ items: [], page: 1, pageCount: 1 });
   });

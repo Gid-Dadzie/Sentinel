@@ -28,7 +28,7 @@ export default function SummaryTiles({ summary, needsReview, period }: SummaryTi
         {
           label: 'Transactions',
           value: formatNumber(summary.total),
-          note: period,
+          note: `${formatMoney(Math.round(summary.totalAmount))} total · ${period}`,
           icon: Receipt,
         },
         {

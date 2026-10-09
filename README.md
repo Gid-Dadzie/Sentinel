@@ -12,9 +12,9 @@ A fraud-risk dashboard that scores every transaction live against a set of edita
 
 - **Work the review queue.** The dashboard opens on flagged transactions that have no analyst verdict yet, riskiest first, with the rules that fired on each.
 - **Investigate a transaction.** See exactly why it scored what it did, rule by rule, next to the customer's normal behaviour (average amount, known countries and devices) and their recent activity. Record a verdict: confirmed fraud or legitimate.
-- **Look at a customer.** Headline numbers, flagged transactions, the countries, cities, devices and categories they normally use, and their full history.
+- **Look at a customer.** Headline numbers, current risk (the average score of their last 5 transactions), flagged transactions, the countries, cities, devices and categories they normally use, and their full history.
 - **Tune the rules.** Switch rules on or off and change their points. Every transaction is re-scored immediately, and the page shows how flagged, pending and declined counts change against the defaults.
-- **Search, filter and sort** all transactions. Filters live in the URL, so a filtered view can be bookmarked or shared.
+- **Search, filter and sort** all transactions by risk level, status, country, minimum amount and start date. Filters live in the URL, so a filtered view can be bookmarked or shared.
 - Light, dark or system theme. Works on phones.
 
 ## How scoring works
@@ -38,6 +38,18 @@ Each transaction is checked against six rules, using only that customer's **earl
 | 76–100 | Critical   | Declined                        |
 
 Anything scored medium or above counts as **flagged** and goes to the review queue until an analyst records a verdict.
+
+### Adding a new rule
+
+The compiler walks you through it: once the new ID exists, every place that needs it fails to type-check until it is filled in.
+
+1. **ID:** add it to `RULE_IDS` in [src/types/transaction.ts](src/types/transaction.ts).
+2. **Default config:** add an entry to `DEFAULT_RULES` in [src/engine/rules.ts](src/engine/rules.ts) with a name, a plain-language condition, default points and `enabled: true`. Put any threshold in `THRESHOLDS` in the same file so the check and its description share one number.
+3. **Check:** add a function to `RULE_CHECKS` in [src/engine/calculateFraudRisk.ts](src/engine/calculateFraudRisk.ts). It receives the transaction, that customer's earlier history (oldest first) and the transaction's own time. It returns the reason text shown to analysts when the rule fires, or `null` when it does not. Never read the clock or any outside state.
+4. **Icon:** pick one in [src/components/ruleIcons.ts](src/components/ruleIcons.ts).
+5. **Tests:** add cases to [src/engine/\_\_tests\_\_](src/engine/__tests__), covering just below, at and just above each threshold.
+
+Points, the on/off switch, re-scoring, the Rules page and the impact comparison all pick the new rule up automatically. Rules saved in a browser are merged over the defaults, so existing users see it too.
 
 ## Getting started
 

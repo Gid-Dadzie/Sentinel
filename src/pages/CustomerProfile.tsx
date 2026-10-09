@@ -10,7 +10,7 @@ import StatTiles from '../components/StatTiles';
 import TransactionTable from '../components/TransactionTable';
 import { getRiskLevel } from '../engine';
 import { useFraudStore } from '../state/useFraudStore';
-import { getCustomerProfile } from '../utils/customer';
+import { CURRENT_RISK_WINDOW, getCustomerProfile } from '../utils/customer';
 import { formatDate, formatMoney, formatNumber } from '../utils/format';
 
 /** "John Mensah" -> "JM". */
@@ -66,9 +66,12 @@ export default function CustomerProfile() {
         }
         meta={`${profile.accountId} · active ${formatDate(profile.firstSeen)} – ${formatDate(profile.lastSeen)}`}
         actions={
-          <span className={styles.highest}>
-            Highest risk
-            <RiskBadge level={getRiskLevel(profile.maxScore)} score={profile.maxScore} />
+          <span
+            className={styles.highest}
+            title={`Average score of the last ${CURRENT_RISK_WINDOW} transactions`}
+          >
+            Current risk
+            <RiskBadge level={getRiskLevel(profile.currentScore)} score={profile.currentScore} />
           </span>
         }
       />
@@ -88,6 +91,7 @@ export default function CustomerProfile() {
           {
             label: 'Average amount',
             value: formatMoney(Math.round(profile.averageAmount)),
+            note: `Largest ${formatMoney(Math.round(profile.largestAmount))}`,
             icon: Banknote,
           },
           {

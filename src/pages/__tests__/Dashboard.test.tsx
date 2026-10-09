@@ -92,7 +92,29 @@ describe('Dashboard', () => {
 
     await user.clear(screen.getByRole('searchbox'));
     await user.type(screen.getByRole('searchbox'), 'zzz-no-match');
-    expect(screen.getByText('No transactions match these filters.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No transactions match these filters. Clear a filter to see more.'),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(search()).toBe('');
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    expect(bodyRows()).toHaveLength(12);
+  });
+
+  it('filters by country, minimum amount and from date', async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.selectOptions(screen.getByLabelText('Country'), 'Nigeria');
+    await user.type(screen.getByLabelText('Minimum amount (GHS)'), '10000');
+    expect(search()).toBe('?country=Nigeria&min=10000');
+    expect(bodyRows()).toHaveLength(1);
+    expect(within(mainTable()).getByRole('link', { name: 'TX-10482' })).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('From date'), '2026-10-06');
+    expect(search()).toBe('?country=Nigeria&min=10000&from=2026-10-06');
+    expect(bodyRows()).toHaveLength(0);
   });
 
   it('sorts by risk when the header is clicked, toggling direction', async () => {

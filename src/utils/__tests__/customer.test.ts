@@ -39,11 +39,23 @@ describe('getCustomerProfile', () => {
       name: 'Test Customer',
       totalAmount: 900,
       averageAmount: 300,
+      largestAmount: 500,
+      currentScore: 17, // (0 + 10 + 40) / 3, rounded
       maxScore: 40,
       firstSeen: '2026-09-01T10:00:00',
       lastSeen: '2026-09-03T10:00:00',
     });
     expect(profile?.flagged.map((t) => t.id)).toEqual([t2.id]);
+  });
+
+  it('bases current risk on the last 5 transactions only', () => {
+    const old = [1, 2, 3].map((day) =>
+      scored(90, { id: `TX-OLD-${day}`, timestamp: `2026-08-0${day}T10:00:00` }),
+    );
+    const recent = [1, 2, 3, 4, 5].map((day) =>
+      scored(day * 10, { id: `TX-NEW-${day}`, timestamp: `2026-09-0${day}T10:00:00` }),
+    );
+    expect(getCustomerProfile([...old, ...recent], 'ACC-TEST')?.currentScore).toBe(30);
   });
 
   it('counts countries, cities, devices and categories, most used first', () => {
