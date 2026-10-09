@@ -1,6 +1,6 @@
-import { createDefaultRules, scoreAll } from '../../engine';
+import { createDefaultRules, scoreAll } from '@sentinel/engine';
 import { CUSTOMERS, generateTransactions } from '../generateData';
-import { CITIES } from '../locations';
+import { CITIES } from '@sentinel/engine';
 
 const data = generateTransactions();
 const scored = scoreAll(data, createDefaultRules());

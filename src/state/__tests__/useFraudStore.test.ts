@@ -1,4 +1,4 @@
-import { createDefaultRules } from '../../engine';
+import { createDefaultRules } from '@sentinel/engine';
 import { RULES_STORAGE_KEY, sanitizeReviews, sanitizeRules } from '../rulesStorage';
 import { RAW_TRANSACTIONS, useFraudStore } from '../useFraudStore';
 

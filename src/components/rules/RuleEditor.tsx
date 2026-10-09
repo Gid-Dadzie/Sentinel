@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { MAX_POINTS, MIN_POINTS } from '../../engine';
+import { MAX_POINTS, MIN_POINTS } from '@sentinel/engine';
 import { useFraudStore } from '../../state/useFraudStore';
 import type { RuleConfig } from '../../types';
 import { formatNumber } from '../../utils/format';

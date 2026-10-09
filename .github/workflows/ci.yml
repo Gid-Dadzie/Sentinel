@@ -29,6 +29,11 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+      # The API: Prisma's client is generated from the schema; no database is needed for these.
+      - run: npm run db:generate -w @sentinel/server
+      - run: npm run typecheck -w @sentinel/server
+      - run: npm test -w @sentinel/server
+      - run: npm run build -w @sentinel/server
 
   deploy:
     name: Deploy to GitHub Pages

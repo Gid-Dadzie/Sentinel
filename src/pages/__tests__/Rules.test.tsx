@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { createDefaultRules } from '../../engine';
+import { createDefaultRules } from '@sentinel/engine';
 import { routerFuture } from '../../routerFuture';
 import { RAW_TRANSACTIONS, useFraudStore } from '../../state/useFraudStore';
 import { triggerCounts } from '../../utils/rules';

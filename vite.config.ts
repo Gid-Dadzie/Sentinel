@@ -9,6 +9,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // The engine package and the server run their own tests.
+    include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test/setup.ts'],
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },

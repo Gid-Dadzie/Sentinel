@@ -22,12 +22,18 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-explicit-any': 'error',
+      // A leading underscore marks a parameter that must exist but is unused (e.g. Express's `next`).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
   {
+    files: ['server/**/*.ts'],
+    languageOptions: { globals: globals.node },
+  },
+  {
     // The engine must stay framework-free and deterministic.
-    files: ['src/engine/**/*.ts'],
+    files: ['packages/engine/src/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',

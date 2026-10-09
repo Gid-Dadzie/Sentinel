@@ -1,5 +1,5 @@
-import { CITIES } from '../../data/locations';
-import { RULE_IDS } from '../../types';
+import { CITIES } from '../locations';
+import { RULE_IDS } from '../types';
 import { haversine } from '../haversine';
 import { DEFAULT_RULES, createDefaultRules } from '../rules';
 import { parseLocalTimestamp } from '../time';

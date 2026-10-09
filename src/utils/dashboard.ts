@@ -1,4 +1,4 @@
-import { compareChronological, isFlagged } from '../engine';
+import { compareChronological, isFlagged } from '@sentinel/engine';
 import {
   RISK_LEVELS,
   STATUSES,

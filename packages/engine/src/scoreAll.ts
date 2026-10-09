@@ -1,4 +1,4 @@
-import type { RuleConfig, ScoredTransaction, Transaction } from '../types';
+import type { RuleConfig, ScoredTransaction, Transaction } from './types';
 import { calculateFraudRisk } from './calculateFraudRisk';
 import { getRiskLevel, getStatus } from './riskLevel';
 

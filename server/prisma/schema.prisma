@@ -1,0 +1,152 @@
+// Sentinel database schema (DOCUMENTATION.md section 9.3).
+// Tables and columns use snake_case in PostgreSQL; the Prisma client uses camelCase.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  analyst
+  admin
+}
+
+enum TxnType {
+  cash_in
+  cash_out
+  transfer
+  airtime
+  payment
+}
+
+enum TxStatus {
+  approved
+  declined
+  pending
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum ReviewStatus {
+  new
+  under_review
+  resolved
+}
+
+enum Decision {
+  confirmed_fraud
+  false_positive
+  needs_info
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  role         Role     @default(analyst)
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  decisions    AnalystDecision[]
+  ruleUpdates  Rule[]
+  auditEntries AuditLog[]
+
+  @@map("users")
+}
+
+model Transaction {
+  id              String       @id // the source system's transaction ID, e.g. "TX-10482"
+  accountId       String       @map("account_id")
+  customerName    String       @map("customer_name")
+  amount          Decimal      @db.Decimal(14, 2)
+  currency        String       @db.Char(3)
+  txnType         TxnType      @map("txn_type")
+  merchant        String
+  category        String
+  city            String
+  country         String
+  // Wall-clock time as recorded by the source, without a time zone, like the engine expects.
+  timestamp       DateTime     @db.Timestamp(0)
+  deviceId        String       @map("device_id")
+  // Phone numbers are stored masked ("024****601"), never in full.
+  senderMsisdn    String       @map("sender_msisdn")
+  recipientMsisdn String?      @map("recipient_msisdn")
+  agentId         String?      @map("agent_id")
+  riskScore       Int          @map("risk_score")
+  riskLevel       RiskLevel    @map("risk_level")
+  status          TxStatus
+  reviewStatus    ReviewStatus @default(new) @map("review_status")
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  reasons   FraudReason[]
+  decisions AnalystDecision[]
+
+  // The engine reads each account's history in time order.
+  @@index([accountId, timestamp])
+  @@index([reviewStatus, riskScore])
+  @@map("transactions")
+}
+
+model FraudReason {
+  id            Int         @id @default(autoincrement())
+  transactionId String      @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  ruleId        String      @map("rule_id")
+  points        Int
+  text          String
+
+  @@index([transactionId])
+  @@map("fraud_reasons")
+}
+
+// Decisions are append-only: a change of mind is a new row, never an update.
+model AnalystDecision {
+  id            String      @id @default(uuid()) @db.Uuid
+  transactionId String      @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  analystId     String      @map("analyst_id") @db.Uuid
+  analyst       User        @relation(fields: [analystId], references: [id], onDelete: Restrict)
+  decision      Decision
+  notes         String      @default("")
+  decidedAt     DateTime    @default(now()) @map("decided_at")
+
+  @@index([transactionId, decidedAt])
+  @@map("decisions")
+}
+
+model Rule {
+  id          String   @id // "amount", "rapid_cash_out", ...
+  name        String
+  condition   String
+  points      Int
+  enabled     Boolean  @default(true)
+  updatedById String?  @map("updated_by") @db.Uuid
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("rules")
+}
+
+model AuditLog {
+  id       BigInt   @id @default(autoincrement())
+  actorId  String?  @map("actor_id") @db.Uuid
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action   String // "login", "import", "decision", "rule.update", ...
+  entity   String
+  entityId String?  @map("entity_id")
+  detail   Json?
+  at       DateTime @default(now())
+
+  @@index([at])
+  @@index([entity, entityId])
+  @@map("audit_log")
+}

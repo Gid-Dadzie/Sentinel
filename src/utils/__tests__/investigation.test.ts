@@ -1,5 +1,5 @@
-import { createDefaultRules, getRiskLevel, getStatus } from '../../engine';
-import { makeTx } from '../../engine/__tests__/helpers';
+import { createDefaultRules, getRiskLevel, getStatus } from '@sentinel/engine';
+import { makeTx } from '@sentinel/engine/testing';
 import type { FraudReason, ScoredTransaction } from '../../types';
 import { getAccountBaseline, getRuleOutcomes, uncappedTotal } from '../investigation';
 

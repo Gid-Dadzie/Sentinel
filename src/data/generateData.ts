@@ -1,6 +1,5 @@
-import { parseLocalTimestamp } from '../engine/time';
 import type { Transaction } from '../types';
-import { CITIES, type CityName } from './locations';
+import { CITIES, parseLocalTimestamp, type CityName } from '@sentinel/engine';
 import { createRandom, type Random } from './random';
 
 export const DATA_SEED = 20261005;

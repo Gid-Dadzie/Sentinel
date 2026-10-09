@@ -1,4 +1,4 @@
-import { compareChronological } from '../engine';
+import { compareChronological } from '@sentinel/engine';
 import type { FraudReason, RuleConfig, ScoredTransaction, Verdict } from '../types';
 
 export const VERDICT_LABELS: Record<Verdict, string> = {

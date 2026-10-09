@@ -1,4 +1,4 @@
-import { compareChronological, isFlagged } from '../engine';
+import { compareChronological, isFlagged } from '@sentinel/engine';
 import type { ScoredTransaction } from '../types';
 
 /** How many of the latest transactions make up the customer's current risk. */

@@ -1,6 +1,6 @@
 import { calculateFraudRisk } from '../calculateFraudRisk';
 import { createDefaultRules } from '../rules';
-import { makeHistory, makeTx, onlyRules, ruleIds } from './helpers';
+import { makeHistory, makeTx, onlyRules, ruleIds } from '../testing';
 
 describe('calculateFraudRisk', () => {
   // Checklist 1

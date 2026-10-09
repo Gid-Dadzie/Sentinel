@@ -1,5 +1,5 @@
-import { makeTx } from '../../engine/__tests__/helpers';
-import { getRiskLevel, getStatus } from '../../engine';
+import { makeTx } from '@sentinel/engine/testing';
+import { getRiskLevel, getStatus } from '@sentinel/engine';
 import type { ScoredTransaction } from '../../types';
 import {
   DEFAULT_FILTERS,

@@ -1,6 +1,6 @@
-import { CITIES, type CityName } from '../../data/locations';
-import type { RuleConfig, RuleId, Transaction } from '../../types';
-import { createDefaultRules } from '../rules';
+import { CITIES, type CityName } from './locations';
+import type { RuleConfig, RuleId, Transaction } from './types';
+import { createDefaultRules } from './rules';
 
 let counter = 0;
 

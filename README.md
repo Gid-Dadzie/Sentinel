@@ -43,13 +43,13 @@ Anything scored medium or above counts as **flagged** and goes to the review que
 
 The compiler walks you through it: once the new ID exists, every place that needs it fails to type-check until it is filled in.
 
-1. **ID:** add it to `RULE_IDS` in [src/types/transaction.ts](src/types/transaction.ts).
-2. **Default config:** add an entry to `DEFAULT_RULES` in [src/engine/rules.ts](src/engine/rules.ts) with a name, a plain-language condition, default points and `enabled: true`. Put any threshold in `THRESHOLDS` in the same file so the check and its description share one number.
-3. **Check:** add a function to `RULE_CHECKS` in [src/engine/calculateFraudRisk.ts](src/engine/calculateFraudRisk.ts). It receives the transaction, that customer's earlier history (oldest first) and the transaction's own time. It returns the reason text shown to analysts when the rule fires, or `null` when it does not. Never read the clock or any outside state.
+1. **ID:** add it to `RULE_IDS` in [packages/engine/src/types.ts](packages/engine/src/types.ts).
+2. **Default config:** add an entry to `DEFAULT_RULES` in [packages/engine/src/rules.ts](packages/engine/src/rules.ts) with a name, a plain-language condition, default points and `enabled: true`. Put any threshold in `THRESHOLDS` in the same file so the check and its description share one number.
+3. **Check:** add a function to `RULE_CHECKS` in [packages/engine/src/calculateFraudRisk.ts](packages/engine/src/calculateFraudRisk.ts). It receives the transaction, that customer's earlier history (oldest first) and the transaction's own time. It returns the reason text shown to analysts when the rule fires, or `null` when it does not. Never read the clock or any outside state.
 4. **Icon:** pick one in [src/components/ruleIcons.ts](src/components/ruleIcons.ts).
-5. **Tests:** add cases to [src/engine/\_\_tests\_\_](src/engine/__tests__), covering just below, at and just above each threshold.
+5. **Tests:** add cases to [packages/engine/src/\_\_tests\_\_](packages/engine/src/__tests__), covering just below, at and just above each threshold.
 
-Points, the on/off switch, re-scoring, the Rules page and the impact comparison all pick the new rule up automatically. Rules saved in a browser are merged over the defaults, so existing users see it too.
+Points, the on/off switch, re-scoring, the Rules page and the impact comparison all pick the new rule up automatically. Rules saved in a browser are merged over the defaults, so existing users see it too. For the API, run `npm run db:seed -w @sentinel/server` again: it adds the new rule and leaves edited ones alone.
 
 ## Getting started
 
@@ -78,17 +78,46 @@ Then open the address Vite prints (usually http://localhost:5173).
 
 ## Project structure
 
+An npm workspace with three parts:
+
 ```
-src/
-  engine/       Pure scoring engine: the six rules, risk levels, scoreAll (no React)
-  data/         Seeded generator for the demo transactions
-  state/        Zustand store: rules, scored transactions, analyst reviews (saved locally)
-  utils/        Filtering, sorting, summaries, formatting
-  components/   Shared UI and page sections (dashboard, investigation, customer, rules)
-  pages/        Dashboard, Investigation, Customer profile, Rules
+packages/engine/  @sentinel/engine: the pure scoring engine, shared by the web app and the API
+  src/            The six rules, risk levels, scoreAll, city table (no React, no I/O)
+src/              The web app
+  data/           Seeded generator for the demo transactions
+  state/          Zustand store: rules, scored transactions, analyst reviews (saved locally)
+  utils/          Filtering, sorting, summaries, formatting
+  components/     Shared UI and page sections (dashboard, investigation, customer, rules)
+  pages/          Dashboard, Investigation, Customer profile, Rules
+server/           @sentinel/server: the API (Express, PostgreSQL via Prisma), in progress
+  prisma/         Database schema, migrations and seed script
+  src/            App, settings, database access
 ```
 
-The engine is deliberately framework-free and deterministic: a transaction's own timestamp is "now", and it only ever sees that customer's earlier transactions. That keeps scores reproducible and makes the rules easy to test.
+The engine is deliberately framework-free and deterministic: a transaction's own timestamp is "now", and it only ever sees that customer's earlier transactions. That keeps scores reproducible, makes the rules easy to test, and means the browser and the server always score identically.
+
+## Running the API (work in progress)
+
+The web app above runs on its own. The API is the start of real-data mode: importing actual transactions, storing scores and recording analyst decisions. You need PostgreSQL 14 or newer.
+
+1. Create a database: `createdb -U postgres sentinel`
+2. Copy `server/.env.example` to `server/.env` and fill it in. It is git-ignored; never commit it. Characters such as `/`, `@` or `:` in the database password must be percent-encoded in `DATABASE_URL` (`/` becomes `%2F`).
+3. Create the tables, then add the default rules and the first admin account:
+   ```bash
+   npm run db:migrate -w @sentinel/server
+   npm run db:seed -w @sentinel/server
+   ```
+4. Start it: `npm run dev -w @sentinel/server`, then open http://localhost:4000/api/health.
+
+| Command (add `-w @sentinel/server`) | What it does                                       |
+| ----------------------------------- | -------------------------------------------------- |
+| `npm run dev`                       | Start the API with reload on change                |
+| `npm test`                          | Run the API tests                                  |
+| `npm run typecheck`                 | Type-check the API                                 |
+| `npm run build` / `npm start`       | Bundle to `server/dist/` and run it                |
+| `npm run db:migrate`                | Apply schema changes and create a migration        |
+| `npm run db:seed`                   | Add default rules and the admin (safe to re-run)   |
+| `npm run db:reset`                  | Drop all data and re-create the database (careful) |
 
 ## Tech
 

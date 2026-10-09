@@ -1,4 +1,4 @@
-import { createDefaultRules, scoreAll } from '../../engine';
+import { createDefaultRules, scoreAll } from '@sentinel/engine';
 import { RAW_TRANSACTIONS } from '../../state/useFraudStore';
 import { RULE_IDS } from '../../types';
 import { compareToDefaults, formatDelta, isRuleModified, triggerCounts } from '../rules';

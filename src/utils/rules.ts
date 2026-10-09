@@ -1,4 +1,4 @@
-import { DEFAULT_RULES, scoreAll } from '../engine';
+import { DEFAULT_RULES, scoreAll } from '@sentinel/engine';
 import {
   RULE_IDS,
   type RuleConfig,

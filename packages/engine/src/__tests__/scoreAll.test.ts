@@ -1,6 +1,6 @@
 import { createDefaultRules } from '../rules';
 import { scoreAll } from '../scoreAll';
-import { makeTx, ruleIds } from './helpers';
+import { makeTx, ruleIds } from '../testing';
 
 describe('scoreAll', () => {
   const rules = createDefaultRules();

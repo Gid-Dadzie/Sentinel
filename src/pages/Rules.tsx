@@ -5,7 +5,7 @@ import styles from '../components/rules/Rules.module.css';
 import PageHeader from '../components/PageHeader';
 import RiskBadge from '../components/RiskBadge';
 import shared from '../components/shared.module.css';
-import { createDefaultRules, scoreAll } from '../engine';
+import { createDefaultRules, scoreAll } from '@sentinel/engine';
 import { RAW_TRANSACTIONS, useFraudStore } from '../state/useFraudStore';
 import { RISK_LEVELS } from '../types';
 import { formatNumber } from '../utils/format';

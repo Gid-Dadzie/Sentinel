@@ -1,4 +1,4 @@
-import type { RuleConfig } from '../types';
+import type { RuleConfig } from './types';
 
 /** Thresholds shared by the rule checks and their descriptions. */
 export const THRESHOLDS = {

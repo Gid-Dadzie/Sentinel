@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { generateTransactions } from '../data/generateData';
-import { clampPoints, createDefaultRules, scoreAll } from '../engine';
+import { clampPoints, createDefaultRules, scoreAll } from '@sentinel/engine';
 import type { Review, RuleConfig, RuleId, ScoredTransaction, Verdict } from '../types';
 import { RULES_STORAGE_KEY, reviewsFromPersisted, rulesFromPersisted } from './rulesStorage';
 

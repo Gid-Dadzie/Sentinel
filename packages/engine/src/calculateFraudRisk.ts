@@ -1,6 +1,6 @@
-import { getCity } from '../data/locations';
-import type { FraudReason, FraudResult, RuleId, RuleConfig, Transaction } from '../types';
-import { formatDuration, formatMoney, formatNumber } from '../utils/format';
+import { getCity } from './locations';
+import type { FraudReason, FraudResult, RuleId, RuleConfig, Transaction } from './types';
+import { formatDuration, formatMoney, formatNumber } from './format';
 import { haversine } from './haversine';
 import { THRESHOLDS } from './rules';
 import { HOUR_MS, MINUTE_MS, parseLocalTimestamp } from './time';

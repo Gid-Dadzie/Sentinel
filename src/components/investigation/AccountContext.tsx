@@ -1,6 +1,6 @@
 import { Activity, ArrowRight, Fingerprint } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { parseLocalTimestamp } from '../../engine';
+import { parseLocalTimestamp } from '@sentinel/engine';
 import type { ScoredTransaction } from '../../types';
 import { formatDateTime, formatDuration, formatMoney } from '../../utils/format';
 import type { AccountBaseline } from '../../utils/investigation';

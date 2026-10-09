@@ -1,4 +1,4 @@
-import type { RiskLevel, Status } from '../types';
+import type { RiskLevel, Status } from './types';
 
 /** 0-25 low, 26-50 medium, 51-75 high, 76-100 critical. */
 export function getRiskLevel(score: number): RiskLevel {

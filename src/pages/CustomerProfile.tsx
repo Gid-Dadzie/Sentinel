@@ -8,7 +8,7 @@ import RiskBadge from '../components/RiskBadge';
 import shared from '../components/shared.module.css';
 import StatTiles from '../components/StatTiles';
 import TransactionTable from '../components/TransactionTable';
-import { getRiskLevel } from '../engine';
+import { getRiskLevel } from '@sentinel/engine';
 import { useFraudStore } from '../state/useFraudStore';
 import { CURRENT_RISK_WINDOW, getCustomerProfile } from '../utils/customer';
 import { formatDate, formatMoney, formatNumber } from '../utils/format';

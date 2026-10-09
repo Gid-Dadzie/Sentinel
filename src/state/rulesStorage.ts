@@ -1,4 +1,4 @@
-import { clampPoints, createDefaultRules } from '../engine';
+import { clampPoints, createDefaultRules } from '@sentinel/engine';
 import { VERDICTS, type Review, type RuleConfig } from '../types';
 
 /** Holds rules and analyst reviews; the key name predates reviews and is kept so saved rules survive. */
