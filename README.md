@@ -119,6 +119,23 @@ The web app above runs on its own. The API is the start of real-data mode: impor
 | `npm run db:seed`                   | Add default rules and the admin (safe to re-run)   |
 | `npm run db:reset`                  | Drop all data and re-create the database (careful) |
 
+The API tests run against a separate database, `sentinel_test` by default (see `TEST_DATABASE_URL` in `server/.env.example`). It is created on the first run if your database user is allowed to, and the tests refuse any database whose name does not end in `_test`.
+
+### Endpoints so far
+
+Every endpoint except health and login needs a signed-in user. Sessions use an HttpOnly, SameSite=Strict cookie that lasts 8 hours; the database stores only a hash of its token.
+
+| Method and path         | Who       | What it does                                         |
+| ----------------------- | --------- | ---------------------------------------------------- |
+| `GET /api/health`       | Anyone    | Reports whether the API can reach the database       |
+| `POST /api/auth/login`  | Anyone    | Signs in with `{ email, password }`; sets the cookie |
+| `POST /api/auth/logout` | Signed in | Ends the session                                     |
+| `GET /api/auth/me`      | Signed in | The current user                                     |
+| `GET /api/users`        | Admin     | Lists users (never password hashes)                  |
+| `POST /api/users`       | Admin     | Creates a user: `{ name, email, password, role }`    |
+
+Logins (including failed ones), logouts and new users are recorded in the audit log.
+
 ## Tech
 
 React 18, TypeScript, Vite, React Router, Zustand, Vitest and Testing Library. Charts are plain HTML and SVG, with no chart library. Icons are from [Lucide](https://lucide.dev/).

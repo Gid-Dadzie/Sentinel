@@ -1,10 +1,10 @@
 import { createApp } from './app';
 import { loadConfig } from './config';
-import { createPrisma, pingDatabase } from './db';
+import { createPrisma } from './db';
 
 const config = loadConfig();
 const prisma = createPrisma(config.DATABASE_URL);
-const app = createApp({ checkDatabase: () => pingDatabase(prisma) });
+const app = createApp({ prisma, secureCookies: config.NODE_ENV === 'production' });
 
 const server = app.listen(config.PORT, () => {
   console.log(`Sentinel API listening on http://localhost:${config.PORT}`);
