@@ -21,6 +21,7 @@ function DemoRules() {
   const rules = useFraudStore((state) => state.rules);
   const transactions = useFraudStore((state) => state.transactions);
   const resetRules = useFraudStore((state) => state.resetRules);
+  const updateRule = useFraudStore((state) => state.updateRule);
 
   // Both depend only on the fixed generated data, so compute them once.
   const fires = useMemo(() => triggerCounts(RAW_TRANSACTIONS), []);
@@ -72,7 +73,12 @@ function DemoRules() {
 
       <div className={styles.rules}>
         {rules.map((rule) => (
-          <RuleEditor key={rule.id} rule={rule} fires={fires[rule.id]} />
+          <RuleEditor
+            key={rule.id}
+            rule={rule}
+            onChange={(patch) => updateRule(rule.id, patch)}
+            usage={`Fires on ${formatNumber(fires[rule.id])} transaction${fires[rule.id] === 1 ? '' : 's'}`}
+          />
         ))}
       </div>
 

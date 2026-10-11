@@ -2,11 +2,12 @@ import type { PrismaClient } from '@prisma/client';
 import express, { type ErrorRequestHandler, type Express } from 'express';
 import { requireAuth } from './auth/middleware';
 import { HttpError } from './http';
+import { auditRouter } from './routes/audit';
 import { authRouter } from './routes/auth';
 import { customersRouter } from './routes/customers';
 import { dashboardRouter } from './routes/dashboard';
 import { importsRouter } from './routes/imports';
-import { rulesRouter } from './routes/rules';
+import { rescoreRouter, rulesRouter } from './routes/rules';
 import { transactionsRouter } from './routes/transactions';
 import { usersRouter } from './routes/users';
 
@@ -77,6 +78,8 @@ export function createApp({ prisma, secureCookies, checkDatabase }: AppDeps): Ex
   app.use('/api/transactions', transactionsRouter(prisma));
   app.use('/api/customers', customersRouter(prisma));
   app.use('/api/rules', rulesRouter(prisma));
+  app.use('/api/rescore', rescoreRouter(prisma));
+  app.use('/api/audit', auditRouter(prisma));
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Not found' });

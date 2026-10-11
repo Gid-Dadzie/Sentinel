@@ -11,6 +11,7 @@ const Investigation = lazy(() => import('./pages/Investigation'));
 const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
 const Rules = lazy(() => import('./pages/Rules'));
 const Import = lazy(() => import('./pages/Import'));
+const AuditLog = lazy(() => import('./pages/AuditLog'));
 
 export default function App() {
   return (
@@ -21,14 +22,24 @@ export default function App() {
         <Route path="customer/:accountId" element={<CustomerProfile />} />
         <Route path="rules" element={<Rules />} />
         {API_MODE && (
-          <Route
-            path="import"
-            element={
-              <RequireRole role="admin">
-                <Import />
-              </RequireRole>
-            }
-          />
+          <>
+            <Route
+              path="import"
+              element={
+                <RequireRole role="admin">
+                  <Import />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="audit"
+              element={
+                <RequireRole role="admin">
+                  <AuditLog />
+                </RequireRole>
+              }
+            />
+          </>
         )}
         <Route path="*" element={<NotFound />} />
       </Route>

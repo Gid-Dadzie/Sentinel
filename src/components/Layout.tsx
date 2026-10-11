@@ -1,4 +1,11 @@
-import { LayoutDashboard, LogOut, ShieldCheck, SlidersHorizontal, Upload } from 'lucide-react';
+import {
+  LayoutDashboard,
+  LogOut,
+  ScrollText,
+  ShieldCheck,
+  SlidersHorizontal,
+  Upload,
+} from 'lucide-react';
 import { Suspense, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth, useOptionalUser } from '../api/auth';
@@ -78,10 +85,16 @@ export default function Layout() {
             <span>Rules</span>
           </NavLink>
           {user?.role === 'admin' && (
-            <NavLink to="/import" className={navClass}>
-              <Upload size={17} aria-hidden="true" />
-              <span>Import</span>
-            </NavLink>
+            <>
+              <NavLink to="/import" className={navClass}>
+                <Upload size={17} aria-hidden="true" />
+                <span>Import</span>
+              </NavLink>
+              <NavLink to="/audit" className={navClass}>
+                <ScrollText size={17} aria-hidden="true" />
+                <span>Audit log</span>
+              </NavLink>
+            </>
           )}
         </nav>
         <div className={styles.sidebarFooter}>

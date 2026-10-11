@@ -1,21 +1,22 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { MAX_POINTS, MIN_POINTS } from '@sentinel/engine';
-import { useFraudStore } from '../../state/useFraudStore';
 import type { RuleConfig } from '../../types';
-import { formatNumber } from '../../utils/format';
+import type { RulePatch } from '../../state/useFraudStore';
 import { getDefaultRule, isRuleModified } from '../../utils/rules';
 import { RULE_ICONS } from '../ruleIcons';
 import styles from './Rules.module.css';
 
 interface RuleEditorProps {
   rule: RuleConfig;
-  /** Transactions this rule fires on, regardless of whether it is enabled. */
-  fires: number;
+  onChange: (patch: RulePatch) => void;
+  /** How the rule is doing, e.g. how many transactions it fires on. */
+  usage: ReactNode;
+  /** Shows the settings without letting them change. */
+  readOnly?: boolean;
 }
 
-/** One rule: on/off switch and points (slider + number box). Every change re-scores live. */
-export default function RuleEditor({ rule, fires }: RuleEditorProps) {
-  const updateRule = useFraudStore((state) => state.updateRule);
+/** One rule: on/off switch and points (slider + number box). */
+export default function RuleEditor({ rule, onChange, usage, readOnly = false }: RuleEditorProps) {
   const ids = { heading: useId(), condition: useId(), points: useId() };
   const defaults = getDefaultRule(rule.id);
   const modified = isRuleModified(rule);
@@ -28,7 +29,7 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
   const commitText = (text: string) => {
     setDraft(text);
     const value = Number(text);
-    if (text.trim() !== '' && Number.isFinite(value)) updateRule(rule.id, { points: value });
+    if (text.trim() !== '' && Number.isFinite(value)) onChange({ points: value });
   };
 
   return (
@@ -54,8 +55,9 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
             type="checkbox"
             role="switch"
             checked={rule.enabled}
+            disabled={readOnly}
             aria-describedby={ids.condition}
-            onChange={(e) => updateRule(rule.id, { enabled: e.target.checked })}
+            onChange={(e) => onChange({ enabled: e.target.checked })}
           />
           <span>{rule.enabled ? 'On' : 'Off'}</span>
           <span className="visually-hidden"> – {rule.name}</span>
@@ -72,11 +74,11 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
           max={MAX_POINTS}
           step={1}
           value={rule.points}
-          disabled={!rule.enabled}
+          disabled={readOnly || !rule.enabled}
           aria-label={`${rule.name} points slider`}
           onChange={(e) => {
             setDraft(null);
-            updateRule(rule.id, { points: Number(e.target.value) });
+            onChange({ points: Number(e.target.value) });
           }}
           className={styles.slider}
         />
@@ -88,7 +90,7 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
           max={MAX_POINTS}
           step={1}
           value={shown}
-          disabled={!rule.enabled}
+          disabled={readOnly || !rule.enabled}
           onChange={(e) => commitText(e.target.value)}
           onBlur={() => setDraft(null)}
           className={styles.pointsInput}
@@ -96,7 +98,7 @@ export default function RuleEditor({ rule, fires }: RuleEditorProps) {
       </div>
 
       <p className={styles.ruleFooter}>
-        Fires on {formatNumber(fires)} transaction{fires === 1 ? '' : 's'}
+        {usage}
         {modified && defaults && (
           <>
             {' '}

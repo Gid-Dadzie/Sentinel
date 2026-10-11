@@ -1,0 +1,54 @@
+/* On phones each entry becomes a small card: time, then who and what, then details. */
+@media (max-width: 720px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+  }
+
+  .table tbody tr {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table tbody td {
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .table td[data-label='Time'] {
+    font-size: 0.8125rem;
+  }
+
+  .table td[data-label='Who'],
+  .table td[data-label='Action'],
+  .table td[data-label='On'] {
+    display: inline;
+    font-weight: 500;
+  }
+
+  .table td[data-label='Action']::before,
+  .table td[data-label='On']:not(:empty)::before {
+    content: ' · ';
+    color: var(--text-faint);
+  }
+
+  .table td[data-label='Details'] {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+}

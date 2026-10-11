@@ -217,16 +217,20 @@
     padding: 0;
   }
 
+  /* Scrolls sideways if the links do not fit, instead of widening the page. */
   .nav {
     display: flex;
     order: 3;
     width: 100%;
     gap: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   .link {
-    flex: 1;
+    flex: 1 0 auto;
     justify-content: center;
+    white-space: nowrap;
   }
 
   .active,

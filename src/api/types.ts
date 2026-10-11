@@ -1,6 +1,6 @@
 /** Shapes the API sends back. Kept in step with server/src/routes by the API tests. */
 
-import type { ScoredTransaction } from '@sentinel/engine';
+import type { RiskLevel, RuleId, ScoredTransaction } from '@sentinel/engine';
 import type { DailyCount, DashboardSummary, RiskLevelCount } from '../utils/dashboard';
 
 export type Role = 'analyst' | 'admin';
@@ -109,4 +109,44 @@ export interface CustomerData {
   accountId: string;
   /** Oldest first. */
   transactions: ApiTransaction[];
+}
+
+// ---- Rules, re-scoring and the audit log ----
+
+export interface RuleFeedback {
+  ruleId: RuleId;
+  /** Stored transactions the rule fired on. */
+  fired: number;
+  /** Of those, how many analysts last judged as confirmed fraud or a false positive. */
+  confirmedFraud: number;
+  falsePositive: number;
+}
+
+export interface RescoreSummary {
+  total: number;
+  changed: number;
+  flaggedBefore: number;
+  flaggedAfter: number;
+  newlyFlagged: number;
+  noLongerFlagged: number;
+  levels: { level: RiskLevel; before: number; after: number }[];
+  moves: { from: RiskLevel; to: RiskLevel; count: number }[];
+}
+
+export interface AuditEntry {
+  id: string;
+  at: string; // ISO timestamp
+  action: string;
+  entity: string;
+  entityId: string | null;
+  detail: Record<string, unknown> | null;
+  actor: { id: string; name: string; email: string } | null;
+}
+
+export interface AuditPage {
+  entries: AuditEntry[];
+  total: number;
+  page: number;
+  pageCount: number;
+  filters: { actions: string[]; actors: { id: string; name: string }[] };
 }
