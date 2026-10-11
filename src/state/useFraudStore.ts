@@ -56,7 +56,7 @@ export const useFraudStore = create<FraudState>()(
         })),
       clearReview: (transactionId) =>
         set((state) => {
-          const { [transactionId]: _removed, ...rest } = state.reviews; // eslint-disable-line @typescript-eslint/no-unused-vars
+          const { [transactionId]: _removed, ...rest } = state.reviews;
           return { reviews: rest };
         }),
     }),

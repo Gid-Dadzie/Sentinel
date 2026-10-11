@@ -1,0 +1,322 @@
+/* Sign-in: a brand panel beside the form on wide screens, a compact header on phones. */
+
+.screen {
+  display: grid;
+  grid-template-columns: minmax(20rem, 5fr) 7fr;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+/* ---- Brand panel ---- */
+
+.brandPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  color: var(--nav-text);
+  background:
+    radial-gradient(
+      120% 80% at 0% 0%,
+      color-mix(in srgb, var(--accent) 28%, transparent),
+      transparent 60%
+    ),
+    var(--nav-bg);
+  border-right: 1px solid var(--nav-border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 11px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.brandName {
+  color: var(--nav-text-strong);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tagline {
+  max-width: 22rem;
+  margin: 0 0 var(--space-6);
+  color: var(--nav-text-strong);
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.points {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 24rem;
+  line-height: 1.45;
+}
+
+.points svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.brandFoot {
+  margin: 0;
+  color: var(--nav-muted);
+  font-size: 0.8125rem;
+}
+
+/* ---- Form panel ---- */
+
+.formPanel {
+  display: grid;
+  place-items: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-5);
+  width: min(100%, 24rem);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--risk-critical-fg) 30%, transparent);
+  border-radius: var(--radius);
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.inputWrap input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 2.75rem 0 2.5rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.inputWrap input::placeholder {
+  color: var(--text-faint);
+}
+
+.inputWrap input:hover {
+  border-color: var(--text-faint);
+}
+
+.inputWrap input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.inputWrap input[aria-invalid='true'] {
+  border-color: var(--risk-critical-fg);
+}
+
+.reveal {
+  position: absolute;
+  right: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.reveal:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.linkButton {
+  padding: 0;
+  color: var(--accent-text);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}
+
+.hint,
+.help {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.hint {
+  color: var(--risk-medium-fg);
+  font-weight: 600;
+}
+
+.help {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.submit:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+.footnote {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* ---- Narrow screens: the brand panel shrinks to a header bar ---- */
+
+@media (max-width: 860px) {
+  .screen {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .brandPanel {
+    padding: var(--space-4);
+    border-right: 0;
+    border-bottom: 1px solid var(--nav-border);
+  }
+
+  .pitch,
+  .brandFoot {
+    display: none;
+  }
+
+  .formPanel {
+    align-items: start;
+    padding-top: var(--space-8);
+  }
+}

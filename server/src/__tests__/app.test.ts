@@ -26,6 +26,15 @@ describe('GET /api/health', () => {
 describe('request handling', () => {
   const app = createApp({ prisma, secureCookies: false });
 
+  it('explains itself to someone who opens the API address in a browser', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/html/);
+    expect(res.text).toContain('The Sentinel API is running');
+    expect(res.text).toContain('npm run dev:api');
+    expect(res.text).toContain('http://localhost:5173');
+  });
+
   it('hides routes from anyone not signed in and does not advertise Express', async () => {
     const res = await request(app).get('/api/nope');
     expect(res.status).toBe(401);

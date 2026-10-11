@@ -108,6 +108,15 @@ The web app above runs on its own. The API is the start of real-data mode: impor
    npm run db:seed -w @sentinel/server
    ```
 4. Start it: `npm run dev -w @sentinel/server`, then open http://localhost:4000/api/health.
+5. In a second terminal, start the web app against it: `npm run dev:api`. Open the address Vite prints and sign in with the admin from `server/.env`. Requests to `/api` are forwarded to port 4000 (set `API_URL` to change that).
+
+If signing in does not work:
+
+- **"Cannot reach the Sentinel API"**: the API is not running. Start it with `npm run dev -w @sentinel/server` and keep that terminal open while you use the app.
+- **"Email or password is incorrect"**: use the admin email and password that were in `server/.env` when you first ran `db:seed`. Running the seed again never changes an existing account; it only creates an admin for an email that does not exist yet.
+- **http://localhost:4000 shows "The Sentinel API is running"**: that address is only the API. Open the web app at http://localhost:5173.
+
+In API mode the app asks you to sign in, and admins get an **Import** page: choose a CSV or `.xlsx` file, check how its columns map to fields (with an example from the first row), then import. The report lists what was imported and flagged, every rejected row with its reasons, and duplicates that were skipped. The dashboard and other pages still show demo data for now; they move to stored transactions in the next phase.
 
 | Command (add `-w @sentinel/server`) | What it does                                       |
 | ----------------------------------- | -------------------------------------------------- |
@@ -119,22 +128,34 @@ The web app above runs on its own. The API is the start of real-data mode: impor
 | `npm run db:seed`                   | Add default rules and the admin (safe to re-run)   |
 | `npm run db:reset`                  | Drop all data and re-create the database (careful) |
 
-The API tests run against a separate database, `sentinel_test` by default (see `TEST_DATABASE_URL` in `server/.env.example`). It is created on the first run if your database user is allowed to, and the tests refuse any database whose name does not end in `_test`.
+The API tests run against a separate database, `sentinel_test` by default (see `TEST_DATABASE_URL` in `server/.env.example`). Create it once with `createdb -U postgres sentinel_test`; the tests bring its tables up to date, empty them between tests, and refuse any database whose name does not end in `_test`.
 
 ### Endpoints so far
 
 Every endpoint except health and login needs a signed-in user. Sessions use an HttpOnly, SameSite=Strict cookie that lasts 8 hours; the database stores only a hash of its token.
 
-| Method and path         | Who       | What it does                                         |
-| ----------------------- | --------- | ---------------------------------------------------- |
-| `GET /api/health`       | Anyone    | Reports whether the API can reach the database       |
-| `POST /api/auth/login`  | Anyone    | Signs in with `{ email, password }`; sets the cookie |
-| `POST /api/auth/logout` | Signed in | Ends the session                                     |
-| `GET /api/auth/me`      | Signed in | The current user                                     |
-| `GET /api/users`        | Admin     | Lists users (never password hashes)                  |
-| `POST /api/users`       | Admin     | Creates a user: `{ name, email, password, role }`    |
+| Method and path              | Who       | What it does                                                                   |
+| ---------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `GET /api/health`            | Anyone    | Reports whether the API can reach the database                                 |
+| `POST /api/auth/login`       | Anyone    | Signs in with `{ email, password }`; sets the cookie                           |
+| `POST /api/auth/logout`      | Signed in | Ends the session                                                               |
+| `GET /api/auth/me`           | Signed in | The current user                                                               |
+| `GET /api/users`             | Admin     | Lists users (never password hashes)                                            |
+| `POST /api/users`            | Admin     | Creates a user: `{ name, email, password, role }`                              |
+| `POST /api/imports/preview`  | Admin     | Reads an uploaded file: columns, a sample, a suggested mapping. Stores nothing |
+| `POST /api/imports?mapping=` | Admin     | Validates, scores and stores the rows; returns the import report               |
 
-Logins (including failed ones), logouts and new users are recorded in the audit log.
+Logins (including failed ones), logouts, new users and imports are recorded in the audit log.
+
+#### Importing transactions
+
+The file is the raw request body (CSV or `.xlsx`, up to 10 MB and 50,000 rows), with its name in an `X-File-Name` header. `mapping` is a JSON object from field to column heading, for example `{"id":"Txn ID","amount":"Amount",...}`.
+
+- **Required fields:** transaction ID, account ID, amount, transaction type, date and time, city, country, device ID and sender phone. Customer name, currency (default `GHS`), merchant, category, recipient phone and agent ID are optional.
+- **Validation:** amounts must be positive numbers (`15,400` and `GHS 850.50` are fine); dates must be `YYYY-MM-DD HH:MM` or a real Excel date, read as local time; currencies must be known codes; types are cash in, cash out, transfer, airtime or payment (common names such as "withdrawal" or "p2p" are understood). Every problem in a row is reported, not just the first.
+- **Duplicates:** an ID already in the database, or repeated in the file, is skipped and listed. Nothing is dropped silently.
+- **Privacy:** phone numbers are masked (`024****601`) before anything is stored, and in the preview.
+- **Scoring:** rows are scored in time order with the rules as stored, each against that account's stored history plus earlier rows in the same file, exactly as the engine's `scoreAll` would. Transactions already stored are not re-scored by an import.
 
 ## Tech
 

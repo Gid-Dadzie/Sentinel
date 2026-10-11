@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "dev": "vite",
+    "dev:api": "vite --mode api",
     "build": "tsc -b && tsc -p packages/engine && vite build",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",

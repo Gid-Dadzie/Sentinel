@@ -1,0 +1,164 @@
+.drop {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.drop h2 {
+  color: var(--text);
+}
+
+.drop p {
+  max-width: 34rem;
+  margin: 0;
+}
+
+/* The visually hidden file input still takes focus; show it on its label. */
+.drop label:has(+ input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.drop label {
+  cursor: pointer;
+}
+
+.drop label[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.fileMeta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.mapTable tbody th {
+  white-space: nowrap;
+}
+
+.required {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+.select {
+  width: 100%;
+  min-width: 12rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-2);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.example {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problems,
+.error {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+  font-size: 0.875rem;
+}
+
+.problems {
+  padding-left: var(--space-8);
+}
+
+.error {
+  margin: 0;
+}
+
+.error p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.error ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.reasonList {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+/* Phones: each field becomes a small stack (name, dropdown, example) instead of a wide row. */
+@media (max-width: 640px) {
+  .mapTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .mapTable,
+  .mapTable tbody,
+  .mapTable tr,
+  .mapTable th,
+  .mapTable td {
+    display: block;
+  }
+
+  .mapTable tr {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mapTable tbody th,
+  .mapTable tbody td {
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .mapTable tbody td {
+    margin-top: var(--space-2);
+  }
+
+  .mapTable .select {
+    min-width: 0;
+  }
+
+  .mapTable .example {
+    max-width: none;
+    font-size: 0.8125rem;
+  }
+
+  .mapTable .example::before {
+    content: 'Example: ';
+  }
+}

@@ -113,6 +113,41 @@
   font-size: 0.75rem;
 }
 
+.account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.accountName {
+  display: grid;
+  color: var(--nav-text-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.signOut {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 2rem;
+  padding: 0 var(--space-2);
+  color: var(--nav-text);
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.signOut:hover {
+  color: var(--nav-text-strong);
+  background: var(--nav-surface);
+}
+
 .themeToggle {
   display: inline-flex;
   justify-self: start;

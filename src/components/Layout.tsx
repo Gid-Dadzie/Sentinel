@@ -1,6 +1,7 @@
-import { LayoutDashboard, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { LayoutDashboard, LogOut, ShieldCheck, SlidersHorizontal, Upload } from 'lucide-react';
 import { Suspense } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useAuth, useOptionalUser } from '../api/auth';
 import { useFraudStore } from '../state/useFraudStore';
 import { countNeedsReview } from '../utils/dashboard';
 import styles from './Layout.module.css';
@@ -14,8 +15,26 @@ function isDashboardArea(pathname: string): boolean {
   return pathname === '/' || pathname.startsWith('/tx/') || pathname.startsWith('/customer/');
 }
 
+/** Who is signed in, with a way out. Only rendered in API mode. */
+function SignedIn({ name, role }: { name: string; role: string }) {
+  const { logout } = useAuth();
+  return (
+    <div className={styles.account}>
+      <span className={styles.accountName}>
+        {name}
+        <span className={styles.dataNote}>{role === 'admin' ? 'Admin' : 'Analyst'}</span>
+      </span>
+      <button type="button" className={styles.signOut} onClick={() => void logout()}>
+        <LogOut size={15} aria-hidden="true" />
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 export default function Layout() {
   const { pathname } = useLocation();
+  const user = useOptionalUser();
   const needsReview = useFraudStore((state) => countNeedsReview(state.transactions, state.reviews));
 
   return (
@@ -48,10 +67,20 @@ export default function Layout() {
             <SlidersHorizontal size={17} aria-hidden="true" />
             <span>Rules</span>
           </NavLink>
+          {user?.role === 'admin' && (
+            <NavLink to="/import" className={navClass}>
+              <Upload size={17} aria-hidden="true" />
+              <span>Import</span>
+            </NavLink>
+          )}
         </nav>
         <div className={styles.sidebarFooter}>
           <ThemeToggle />
-          <p className={styles.dataNote}>Demo data · 1 Sep – 5 Oct 2026</p>
+          {user ? (
+            <SignedIn name={user.name} role={user.role} />
+          ) : (
+            <p className={styles.dataNote}>Demo data · 1 Sep – 5 Oct 2026</p>
+          )}
         </div>
       </aside>
       <main id="main" className={styles.main}>
