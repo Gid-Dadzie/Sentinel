@@ -3,6 +3,7 @@ import type { RiskLevelCount } from '../../utils/dashboard';
 import { capitalize, formatNumber } from '../../utils/format';
 import shared from '../shared.module.css';
 import styles from './Dashboard.module.css';
+import { API_MODE } from '../../api/client';
 
 function percent(count: number, total: number): string {
   if (total === 0 || count === 0) return '0%';
@@ -21,7 +22,8 @@ export default function RiskMix({ data }: { data: RiskLevelCount[] }) {
         Risk mix
       </h2>
       <p className={shared.cardDescription}>
-        All {formatNumber(total)} transactions by risk band, with the current rules.
+        All {formatNumber(total)} transactions by risk band,{' '}
+        {API_MODE ? 'as scored when imported' : 'with the current rules'}.
       </p>
       <div className={styles.mixBar} aria-hidden="true">
         {data

@@ -46,9 +46,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('signed-out');
   }, []);
 
+  const expire = useCallback(() => {
+    setUser(null);
+    setNotice('Your session has ended. Sign in again to continue.');
+    setStatus('signed-out');
+  }, []);
+
   const value = useMemo(
-    () => ({ status, user, notice, login, logout }),
-    [status, user, notice, login, logout],
+    () => ({ status, user, notice, login, logout, expire }),
+    [status, user, notice, login, logout, expire],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

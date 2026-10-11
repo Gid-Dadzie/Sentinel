@@ -7,6 +7,7 @@ import { RULE_ICONS } from '../ruleIcons';
 import shared from '../shared.module.css';
 import styles from './Investigation.module.css';
 import ScoreRing from './ScoreRing';
+import { API_MODE } from '../../api/client';
 
 const DECISIONS: Record<Status, string> = {
   approved: 'Approved automatically',
@@ -59,7 +60,7 @@ export default function ScoreBreakdown({ tx, rules }: ScoreBreakdownProps) {
         </h2>
         <Link to="/rules" className={shared.buttonGhost}>
           <SlidersHorizontal size={15} aria-hidden="true" />
-          Adjust rules
+          {API_MODE ? 'View rules' : 'Adjust rules'}
         </Link>
       </div>
 

@@ -8,9 +8,8 @@ import {
   SearchX,
   X,
 } from 'lucide-react';
-import { useId, useMemo, useRef } from 'react';
+import { useId, useMemo, useRef, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useFraudStore } from '../state/useFraudStore';
 import { RISK_LEVELS, STATUSES, type ScoredTransaction } from '../types';
 import {
   DEFAULT_FILTERS,
@@ -26,46 +25,119 @@ import {
   type TableFilters,
 } from '../utils/dashboard';
 import { capitalize, formatDateTime, formatMoney, formatNumber } from '../utils/format';
-import { VERDICT_SHORT_LABELS } from '../utils/investigation';
 import RiskBadge from './RiskBadge';
 import shared from './shared.module.css';
 import StatusBadge from './StatusBadge';
 import styles from './TransactionTable.module.css';
 
+/** URL parameters that belong to the table's own filters. */
+const OWN_PARAMS = new Set([
+  'q',
+  'risk',
+  'status',
+  'country',
+  'min',
+  'from',
+  'flagged',
+  'sort',
+  'dir',
+  'page',
+]);
+
 const SORT_LABELS: Record<SortKey, string> = { time: 'Time', amount: 'Amount', score: 'Risk' };
+
+/** A short review label per transaction ID, e.g. "Reviewed: fraud". */
+export type ReviewLabels = Readonly<Record<string, string>>;
 
 interface TransactionTableProps {
   transactions: readonly ScoredTransaction[];
+  reviewLabels: ReviewLabels;
   title?: string;
   /** Hide the customer column when every row belongs to one customer. */
   showCustomer?: boolean;
 }
 
-/** Filterable, sortable, paged table. Filters live in the page URL. On phones rows become cards. */
-export default function TransactionTable({
-  transactions,
-  title = 'Transactions',
-  showCustomer = true,
-}: TransactionTableProps) {
-  const headingId = useId();
-  const reviews = useFraudStore((state) => state.reviews);
-  const [searchParams, setSearchParams] = useSearchParams();
+/** Filters, sorts and pages a list held in the browser. */
+export default function TransactionTable({ transactions, ...rest }: TransactionTableProps) {
+  const [searchParams] = useSearchParams();
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
   const filtered = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
   const { items, page, pageCount } = paginate(filtered, filters.page);
   const countries = useMemo(() => listCountries(transactions), [transactions]);
+  return (
+    <TransactionTableView
+      {...rest}
+      items={items}
+      matched={filtered.length}
+      total={transactions.length}
+      page={page}
+      pageCount={pageCount}
+      countries={countries}
+    />
+  );
+}
+
+interface TransactionTableViewProps extends Omit<TransactionTableProps, 'transactions'> {
+  /** The rows on this page. */
+  items: readonly ScoredTransaction[];
+  /** How many transactions match the filters; null until known. */
+  matched: number | null;
+  /** How many there are without filters, when known. */
+  total: number | null;
+  page: number;
+  pageCount: number;
+  countries: readonly string[];
+  /** Extra filters for the toolbar. */
+  extraFilters?: ReactNode;
+  /** True when another filter outside the URL filters is narrowing the list. */
+  extraFiltering?: boolean;
+  /** URL parameters of those extra filters, removed by "Clear filters". */
+  extraParams?: readonly string[];
+  /** Shown above the rows while loading or after an error. */
+  notice?: ReactNode;
+}
+
+/** Filterable, sortable, paged table. Filters live in the page URL. On phones rows become cards. */
+export function TransactionTableView({
+  items,
+  matched: matchedOrNull,
+  total,
+  page,
+  pageCount,
+  countries,
+  reviewLabels,
+  title = 'Transactions',
+  showCustomer = true,
+  extraFilters,
+  extraFiltering = false,
+  extraParams = [],
+  notice,
+}: TransactionTableViewProps) {
+  const headingId = useId();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
   const searchRef = useRef<HTMLInputElement>(null);
   const minAmountRef = useRef<HTMLInputElement>(null);
 
-  const setFilters = (next: TableFilters) =>
-    setSearchParams(filtersToParams(next), { replace: true });
+  /** Keeps URL parameters the filters do not own (such as the review queue switch). */
+  const setFilters = (next: TableFilters, drop: readonly string[] = []) =>
+    setSearchParams(
+      (current) => {
+        const params = filtersToParams(next);
+        for (const [key, value] of current) {
+          if (!OWN_PARAMS.has(key) && !drop.includes(key)) params.set(key, value);
+        }
+        return params;
+      },
+      { replace: true },
+    );
   /** Any change other than paging goes back to page 1. */
   const update = (patch: Partial<TableFilters>) => setFilters({ ...filters, page: 1, ...patch });
   const goToPage = (target: number) => setFilters({ ...filters, page: target });
-  const filtering = hasActiveFilters(filters);
+  const filtering = hasActiveFilters(filters) || extraFiltering;
   /** Keeps the sort. The typed-in inputs are uncontrolled, so they are emptied directly. */
   const clearFilters = () => {
-    setFilters({ ...DEFAULT_FILTERS, sort: filters.sort, dir: filters.dir });
+    setFilters({ ...DEFAULT_FILTERS, sort: filters.sort, dir: filters.dir }, extraParams);
     if (searchRef.current) searchRef.current.value = '';
     if (minAmountRef.current) minAmountRef.current.value = '';
   };
@@ -97,8 +169,15 @@ export default function TransactionTable({
     );
   };
 
-  const firstShown = filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const lastShown = Math.min(page * PAGE_SIZE, filtered.length);
+  const matched = matchedOrNull ?? 0;
+  const firstShown = matched === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const lastShown = Math.min(page * PAGE_SIZE, matched);
+  const countText =
+    matchedOrNull === null
+      ? ''
+      : !filtering || total === null || matched === total
+        ? `${formatNumber(matched)} ${filtering ? 'matching' : 'transactions'}`
+        : `${formatNumber(matched)} of ${formatNumber(total)} transactions`;
 
   return (
     <section className={shared.card} aria-labelledby={headingId}>
@@ -107,9 +186,7 @@ export default function TransactionTable({
           {title}
         </h2>
         <p className={styles.resultCount} role="status">
-          {filtered.length === transactions.length
-            ? `${formatNumber(filtered.length)} transactions`
-            : `${formatNumber(filtered.length)} of ${formatNumber(transactions.length)} transactions`}
+          {countText}
         </p>
       </div>
 
@@ -196,6 +273,7 @@ export default function TransactionTable({
           />
           Flagged only
         </label>
+        {extraFilters}
         {filtering && (
           <button type="button" className={shared.button} onClick={clearFilters}>
             <X size={15} aria-hidden="true" />
@@ -204,6 +282,7 @@ export default function TransactionTable({
         )}
       </form>
 
+      {notice}
       <div className={shared.tableScroll}>
         <table className={`${shared.table} ${styles.table}`} aria-labelledby={headingId}>
           <thead>
@@ -220,7 +299,7 @@ export default function TransactionTable({
           </thead>
           <tbody>
             {items.map((tx) => {
-              const review = reviews[tx.id];
+              const review = reviewLabels[tx.id];
               return (
                 <tr key={tx.id}>
                   <th scope="row" data-label="ID">
@@ -253,16 +332,14 @@ export default function TransactionTable({
                   </td>
                   <td data-label="Status">
                     <StatusBadge status={tx.status} />
-                    {review && (
-                      <span className={styles.review}>{VERDICT_SHORT_LABELS[review.verdict]}</span>
-                    )}
+                    {review && <span className={styles.review}>{review}</span>}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-        {items.length === 0 && (
+        {items.length === 0 && !notice && (
           <div className={shared.empty}>
             <SearchX size={28} aria-hidden="true" />
             <span>No transactions match these filters. Clear a filter to see more.</span>
@@ -272,7 +349,7 @@ export default function TransactionTable({
 
       <nav className={styles.pagination} aria-label="Pagination">
         <span className={styles.range}>
-          {firstShown}–{lastShown} of {formatNumber(filtered.length)}
+          {firstShown}–{lastShown} of {formatNumber(matched)}
         </span>
         <span className={styles.pageControls}>
           <button

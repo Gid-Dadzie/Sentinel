@@ -1,24 +1,23 @@
-import { Activity, RotateCcw, Scale } from 'lucide-react';
+import { Activity, RotateCcw } from 'lucide-react';
 import { useMemo } from 'react';
+import { API_MODE } from '../api/client';
 import RuleEditor from '../components/rules/RuleEditor';
+import ScoreBands from '../components/rules/ScoreBands';
 import styles from '../components/rules/Rules.module.css';
 import PageHeader from '../components/PageHeader';
-import RiskBadge from '../components/RiskBadge';
 import shared from '../components/shared.module.css';
 import { createDefaultRules, scoreAll } from '@sentinel/engine';
 import { RAW_TRANSACTIONS, useFraudStore } from '../state/useFraudStore';
-import { RISK_LEVELS } from '../types';
 import { formatNumber } from '../utils/format';
+import StoredRules from './stored/StoredRules';
 import { compareToDefaults, formatDelta, isRuleModified, triggerCounts } from '../utils/rules';
 
-const BANDS: Record<(typeof RISK_LEVELS)[number], { range: string; decision: string }> = {
-  low: { range: '0–25', decision: 'Approved' },
-  medium: { range: '26–50', decision: 'Approved, flagged for attention' },
-  high: { range: '51–75', decision: 'Pending manual review' },
-  critical: { range: '76–100', decision: 'Declined' },
-};
-
 export default function Rules() {
+  return API_MODE ? <StoredRules /> : <DemoRules />;
+}
+
+/** Rules for the generated data, editable and saved in this browser. */
+function DemoRules() {
   const rules = useFraudStore((state) => state.rules);
   const transactions = useFraudStore((state) => state.transactions);
   const resetRules = useFraudStore((state) => state.resetRules);
@@ -77,37 +76,7 @@ export default function Rules() {
         ))}
       </div>
 
-      <section className={shared.card} aria-labelledby="bands-heading">
-        <h2 id="bands-heading" className={shared.cardTitle}>
-          <Scale size={17} aria-hidden="true" />
-          How scores become decisions
-        </h2>
-        <p className={shared.cardDescription}>
-          Points from every triggered rule are added up and capped at 100.
-        </p>
-        <div className={shared.tableScroll}>
-          <table className={shared.table} aria-labelledby="bands-heading">
-            <thead>
-              <tr>
-                <th scope="col">Risk level</th>
-                <th scope="col">Score</th>
-                <th scope="col">Decision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RISK_LEVELS.map((level) => (
-                <tr key={level}>
-                  <th scope="row">
-                    <RiskBadge level={level} />
-                  </th>
-                  <td className={shared.nowrap}>{BANDS[level].range}</td>
-                  <td>{BANDS[level].decision}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <ScoreBands />
     </div>
   );
 }

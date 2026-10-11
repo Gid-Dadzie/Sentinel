@@ -9,6 +9,8 @@ export interface AuthState {
   notice: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** The API said the session is no longer valid: back to the sign-in page with a note. */
+  expire: () => void;
 }
 
 export const AuthContext = createContext<AuthState | null>(null);

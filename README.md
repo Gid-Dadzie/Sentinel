@@ -113,10 +113,15 @@ The web app above runs on its own. The API is the start of real-data mode: impor
 If signing in does not work:
 
 - **"Cannot reach the Sentinel API"**: the API is not running. Start it with `npm run dev -w @sentinel/server` and keep that terminal open while you use the app.
-- **"Email or password is incorrect"**: use the admin email and password that were in `server/.env` when you first ran `db:seed`. Running the seed again never changes an existing account; it only creates an admin for an email that does not exist yet.
+- **"Email or password is incorrect"**: use the admin email and password that were in `server/.env` when you first ran `db:seed`. Running the seed again never changes an existing account; it only creates an admin for an email that does not exist yet. If the password is lost, put a new one (12 characters or more) in `SEED_ADMIN_PASSWORD`, save the file and run `npm run db:set-password -w @sentinel/server`.
 - **http://localhost:4000 shows "The Sentinel API is running"**: that address is only the API. Open the web app at http://localhost:5173.
 
-In API mode the app asks you to sign in, and admins get an **Import** page: choose a CSV or `.xlsx` file, check how its columns map to fields (with an example from the first row), then import. The report lists what was imported and flagged, every rejected row with its reasons, and duplicates that were skipped. The dashboard and other pages still show demo data for now; they move to stored transactions in the next phase.
+In API mode the app asks you to sign in, and every page shows stored transactions instead of demo data:
+
+- **Import** (admins): choose a CSV or `.xlsx` file, check how its columns map to fields (with an example from the first row), then import. The report lists what was imported and flagged, every rejected row with its reasons, and duplicates that were skipped.
+- **Dashboard**: totals, risk mix and flagged-by-day for everything stored, and the review queue: flagged transactions that are not resolved yet. Filtering, sorting and paging the table happen in the API, so it stays quick with large imports. **Needs review** narrows the table to the queue.
+- **Investigation**: the score explained rule by rule against the account's history, and the analyst decision. Choose **confirmed fraud**, **false positive** or **needs more information**, and add a note (required). Decisions are never edited or deleted: a change of mind is a new decision, the latest one counts, and the full history shows who decided what and when. "Needs more information" keeps the review open (under review); the other two resolve it.
+- **Rules**: the rules new imports are scored with, read-only for now. Stored transactions keep the score they were given at import.
 
 | Command (add `-w @sentinel/server`) | What it does                                       |
 | ----------------------------------- | -------------------------------------------------- |
@@ -126,6 +131,7 @@ In API mode the app asks you to sign in, and admins get an **Import** page: choo
 | `npm run build` / `npm start`       | Bundle to `server/dist/` and run it                |
 | `npm run db:migrate`                | Apply schema changes and create a migration        |
 | `npm run db:seed`                   | Add default rules and the admin (safe to re-run)   |
+| `npm run db:set-password`           | Reset the admin password to the one in `.env`      |
 | `npm run db:reset`                  | Drop all data and re-create the database (careful) |
 
 The API tests run against a separate database, `sentinel_test` by default (see `TEST_DATABASE_URL` in `server/.env.example`). Create it once with `createdb -U postgres sentinel_test`; the tests bring its tables up to date, empty them between tests, and refuse any database whose name does not end in `_test`.
@@ -134,18 +140,28 @@ The API tests run against a separate database, `sentinel_test` by default (see `
 
 Every endpoint except health and login needs a signed-in user. Sessions use an HttpOnly, SameSite=Strict cookie that lasts 8 hours; the database stores only a hash of its token.
 
-| Method and path              | Who       | What it does                                                                   |
-| ---------------------------- | --------- | ------------------------------------------------------------------------------ |
-| `GET /api/health`            | Anyone    | Reports whether the API can reach the database                                 |
-| `POST /api/auth/login`       | Anyone    | Signs in with `{ email, password }`; sets the cookie                           |
-| `POST /api/auth/logout`      | Signed in | Ends the session                                                               |
-| `GET /api/auth/me`           | Signed in | The current user                                                               |
-| `GET /api/users`             | Admin     | Lists users (never password hashes)                                            |
-| `POST /api/users`            | Admin     | Creates a user: `{ name, email, password, role }`                              |
-| `POST /api/imports/preview`  | Admin     | Reads an uploaded file: columns, a sample, a suggested mapping. Stores nothing |
-| `POST /api/imports?mapping=` | Admin     | Validates, scores and stores the rows; returns the import report               |
+| Method and path                        | Who       | What it does                                                                   |
+| -------------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `GET /api/health`                      | Anyone    | Reports whether the API can reach the database                                 |
+| `POST /api/auth/login`                 | Anyone    | Signs in with `{ email, password }`; sets the cookie                           |
+| `POST /api/auth/logout`                | Signed in | Ends the session                                                               |
+| `GET /api/auth/me`                     | Signed in | The current user                                                               |
+| `GET /api/users`                       | Admin     | Lists users (never password hashes)                                            |
+| `POST /api/users`                      | Admin     | Creates a user: `{ name, email, password, role }`                              |
+| `POST /api/imports/preview`            | Admin     | Reads an uploaded file: columns, a sample, a suggested mapping. Stores nothing |
+| `POST /api/imports?mapping=`           | Admin     | Validates, scores and stores the rows; returns the import report               |
+| `GET /api/dashboard`                   | Signed in | Totals, risk mix, per-day counts, queue size and the riskiest queued items     |
+| `GET /api/transactions`                | Signed in | Filtered, sorted, paged list (see below)                                       |
+| `GET /api/transactions/:id`            | Signed in | One transaction with its reasons and every decision, newest first              |
+| `POST /api/transactions/:id/decisions` | Signed in | Adds a decision: `{ decision, notes }`                                         |
+| `GET /api/customers/:accountId`        | Signed in | One account's transactions, oldest first                                       |
+| `GET /api/rules`                       | Signed in | The stored rules                                                               |
 
-Logins (including failed ones), logouts, new users and imports are recorded in the audit log.
+Logins (including failed ones), logouts, new users, imports and decisions are recorded in the audit log.
+
+`GET /api/transactions` takes `q` (searches ID, account, customer, merchant and city), `risk`, `status`, `review` (`new`, `under_review`, `resolved`), `country`, `min` (amount), `from` (`YYYY-MM-DD`), `flagged=1`, `needsReview=1` (flagged and not resolved), `sort` (`time`, `amount`, `score`), `dir`, `page` and `pageSize` (up to 100). It answers `{ items, total, page, pageCount }`.
+
+Analysts and admins can both review. A decision is `confirmed_fraud` or `false_positive` (the review becomes resolved) or `needs_info` (it becomes under review), with a note of up to 2,000 characters.
 
 #### Importing transactions
 

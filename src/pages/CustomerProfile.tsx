@@ -1,125 +1,35 @@
-import { Banknote, Flag, Receipt, SearchX, ShieldAlert, Wallet } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { BehaviourProfile, FlaggedTransactions } from '../components/customer/CustomerCards';
-import styles from '../components/customer/Customer.module.css';
-import PageHeader from '../components/PageHeader';
-import RiskBadge from '../components/RiskBadge';
-import shared from '../components/shared.module.css';
-import StatTiles from '../components/StatTiles';
-import TransactionTable from '../components/TransactionTable';
-import { getRiskLevel } from '@sentinel/engine';
+import { useParams } from 'react-router-dom';
+import { API_MODE } from '../api/client';
+import CustomerProfileView, { CustomerNotFound } from '../components/customer/CustomerProfileView';
 import { useFraudStore } from '../state/useFraudStore';
-import { CURRENT_RISK_WINDOW, getCustomerProfile } from '../utils/customer';
-import { formatDate, formatMoney, formatNumber } from '../utils/format';
-
-/** "John Mensah" -> "JM". */
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((part) => part.charAt(0))
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
+import { getCustomerProfile } from '../utils/customer';
+import { verdictLabels } from '../utils/investigation';
+import StoredCustomerProfile from './stored/StoredCustomerProfile';
 
 export default function CustomerProfile() {
   const { accountId = '' } = useParams<{ accountId: string }>();
+  return API_MODE ? (
+    <StoredCustomerProfile accountId={accountId} />
+  ) : (
+    <DemoCustomerProfile accountId={accountId} />
+  );
+}
+
+function DemoCustomerProfile({ accountId }: { accountId: string }) {
   const transactions = useFraudStore((state) => state.transactions);
   const reviews = useFraudStore((state) => state.reviews);
-
   const profile = useMemo(
     () => getCustomerProfile(transactions, accountId),
     [transactions, accountId],
   );
+  const labels = useMemo(() => verdictLabels(reviews), [reviews]);
 
-  if (!profile) {
-    return (
-      <div className={shared.page}>
-        <PageHeader title="Customer not found" crumbs={[{ label: 'Dashboard', to: '/' }]} />
-        <div className={`${shared.card} ${shared.empty}`}>
-          <SearchX size={28} aria-hidden="true" />
-          <p>There is no customer with account ID “{accountId}”.</p>
-          <Link to="/" className={shared.button}>
-            Back to the dashboard
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
+  if (!profile) return <CustomerNotFound accountId={accountId} />;
   const confirmedFraud = profile.transactions.filter(
     (tx) => reviews[tx.id]?.verdict === 'fraud',
   ).length;
-
   return (
-    <div className={shared.page}>
-      <PageHeader
-        crumbs={[{ label: 'Dashboard', to: '/' }]}
-        title={
-          <>
-            <span className={styles.avatar} aria-hidden="true">
-              {initials(profile.name)}
-            </span>
-            {profile.name}
-          </>
-        }
-        meta={`${profile.accountId} · active ${formatDate(profile.firstSeen)} – ${formatDate(profile.lastSeen)}`}
-        actions={
-          <span
-            className={styles.highest}
-            title={`Average score of the last ${CURRENT_RISK_WINDOW} transactions`}
-          >
-            Current risk
-            <RiskBadge level={getRiskLevel(profile.currentScore)} score={profile.currentScore} />
-          </span>
-        }
-      />
-
-      <StatTiles
-        tiles={[
-          {
-            label: 'Transactions',
-            value: formatNumber(profile.transactions.length),
-            icon: Receipt,
-          },
-          {
-            label: 'Total spent',
-            value: formatMoney(Math.round(profile.totalAmount)),
-            icon: Wallet,
-          },
-          {
-            label: 'Average amount',
-            value: formatMoney(Math.round(profile.averageAmount)),
-            note: `Largest ${formatMoney(Math.round(profile.largestAmount))}`,
-            icon: Banknote,
-          },
-          {
-            label: 'Flagged',
-            value: formatNumber(profile.flagged.length),
-            note: `Highest score ${profile.maxScore}`,
-            icon: Flag,
-            tone: profile.flagged.length > 0 ? 'action' : 'default',
-          },
-          {
-            label: 'Confirmed fraud',
-            value: formatNumber(confirmedFraud),
-            note: 'From analyst reviews',
-            icon: ShieldAlert,
-          },
-        ]}
-      />
-
-      <div className={styles.layout}>
-        <FlaggedTransactions flagged={profile.flagged} />
-        <BehaviourProfile profile={profile} />
-      </div>
-
-      <TransactionTable
-        transactions={profile.transactions}
-        title="Transaction history"
-        showCustomer={false}
-      />
-    </div>
+    <CustomerProfileView profile={profile} reviewLabels={labels} confirmedFraud={confirmedFraud} />
   );
 }

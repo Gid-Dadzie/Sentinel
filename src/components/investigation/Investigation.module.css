@@ -306,6 +306,15 @@
   color: var(--risk-low-dot);
 }
 
+.verdict_needs_info svg {
+  color: var(--risk-medium-dot);
+}
+
+/* Three decisions on stored data: one row when there is room. */
+.verdicts_three {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+}
+
 .verdict:has(input:checked) {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -340,6 +349,57 @@
 .message {
   color: var(--text-muted);
   font-size: 0.8125rem;
+}
+
+.messageError {
+  color: var(--risk-critical-fg);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* ---- Decision history ---- */
+
+.historyHeading {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.history {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyItem {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border-strong);
+}
+
+.historyItem:first-child {
+  border-left-color: var(--accent);
+}
+
+.historyTop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.historyMeta {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.historyNotes {
+  margin: var(--space-1) 0 0;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .outcomeBody {

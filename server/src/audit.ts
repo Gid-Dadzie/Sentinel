@@ -8,7 +8,13 @@ export interface AuditEntry {
   detail?: Prisma.InputJsonObject;
 }
 
-/** Appends to the audit log. Entries are never updated or deleted. */
-export async function audit(prisma: PrismaClient, entry: AuditEntry): Promise<void> {
+/**
+ * Appends to the audit log. Entries are never updated or deleted. Pass a transaction's
+ * client to record the entry together with the change it describes.
+ */
+export async function audit(
+  prisma: Pick<PrismaClient, 'auditLog'>,
+  entry: AuditEntry,
+): Promise<void> {
   await prisma.auditLog.create({ data: entry });
 }

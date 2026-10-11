@@ -1,5 +1,5 @@
 import { compareChronological } from '@sentinel/engine';
-import type { FraudReason, RuleConfig, ScoredTransaction, Verdict } from '../types';
+import type { FraudReason, Review, RuleConfig, ScoredTransaction, Verdict } from '../types';
 
 export const VERDICT_LABELS: Record<Verdict, string> = {
   fraud: 'Confirmed fraud',
@@ -69,4 +69,11 @@ export function getRuleOutcomes(
 /** Sum of triggered points before the 100 cap, to explain a capped score. */
 export function uncappedTotal(reasons: readonly FraudReason[]): number {
   return reasons.reduce((sum, reason) => sum + reason.points, 0);
+}
+
+/** The browser's saved verdicts as short labels for tables and lists. */
+export function verdictLabels(reviews: Readonly<Record<string, Review>>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(reviews).map(([id, review]) => [id, VERDICT_SHORT_LABELS[review.verdict]]),
+  );
 }

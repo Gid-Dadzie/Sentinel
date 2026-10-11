@@ -1,7 +1,9 @@
 import { LayoutDashboard, LogOut, ShieldCheck, SlidersHorizontal, Upload } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth, useOptionalUser } from '../api/auth';
+import { API_MODE } from '../api/client';
+import { useQueueCount } from '../api/queueCount';
 import { useFraudStore } from '../state/useFraudStore';
 import { countNeedsReview } from '../utils/dashboard';
 import styles from './Layout.module.css';
@@ -35,7 +37,15 @@ function SignedIn({ name, role }: { name: string; role: string }) {
 export default function Layout() {
   const { pathname } = useLocation();
   const user = useOptionalUser();
-  const needsReview = useFraudStore((state) => countNeedsReview(state.transactions, state.reviews));
+  const demoCount = useFraudStore((state) =>
+    API_MODE ? 0 : countNeedsReview(state.transactions, state.reviews),
+  );
+  const apiCount = useQueueCount((state) => state.count);
+  const refreshQueueCount = useQueueCount((state) => state.refresh);
+  useEffect(() => {
+    if (API_MODE) refreshQueueCount();
+  }, [pathname, refreshQueueCount]);
+  const needsReview = API_MODE ? (apiCount ?? 0) : demoCount;
 
   return (
     <div className={styles.shell}>

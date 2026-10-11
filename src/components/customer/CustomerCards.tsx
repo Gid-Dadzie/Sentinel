@@ -1,18 +1,23 @@
 import { Compass, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useFraudStore } from '../../state/useFraudStore';
+import { API_MODE } from '../../api/client';
 import type { ScoredTransaction } from '../../types';
 import type { CustomerProfile, UsageCount } from '../../utils/customer';
 import { capitalize, formatDate, formatDateTime, formatMoney } from '../../utils/format';
-import { VERDICT_SHORT_LABELS } from '../../utils/investigation';
 import { RULE_NAMES } from '../../utils/rules';
 import RiskBadge from '../RiskBadge';
 import shared from '../shared.module.css';
+import type { ReviewLabels } from '../TransactionTable';
 import styles from './Customer.module.css';
 
 /** Flagged transactions, riskiest first, with the rules that fired and any analyst verdict. */
-export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTransaction[] }) {
-  const reviews = useFraudStore((state) => state.reviews);
+export function FlaggedTransactions({
+  flagged,
+  reviewLabels,
+}: {
+  flagged: readonly ScoredTransaction[];
+  reviewLabels: ReviewLabels;
+}) {
   const ordered = [...flagged].sort(
     (a, b) => b.riskScore - a.riskScore || b.timestamp.localeCompare(a.timestamp),
   );
@@ -24,7 +29,8 @@ export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTrans
         Flagged transactions
       </h2>
       <p className={shared.cardDescription}>
-        Scored medium risk or above with the current rules, riskiest first.
+        Scored medium risk or above {API_MODE ? 'when imported' : 'with the current rules'},
+        riskiest first.
       </p>
       {ordered.length === 0 ? (
         <div className={shared.empty}>
@@ -34,7 +40,7 @@ export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTrans
       ) : (
         <ul className={styles.flaggedList}>
           {ordered.map((tx) => {
-            const review = reviews[tx.id];
+            const review = reviewLabels[tx.id];
             return (
               <li key={tx.id} className={styles.flaggedItem}>
                 <div className={styles.flaggedTop}>
@@ -50,9 +56,7 @@ export function FlaggedTransactions({ flagged }: { flagged: readonly ScoredTrans
                 <p className={styles.flaggedRules}>
                   {tx.fraudReasons.map((r) => `${RULE_NAMES[r.ruleId]} +${r.points}`).join(' · ')}
                 </p>
-                {review && (
-                  <p className={styles.flaggedReview}>{VERDICT_SHORT_LABELS[review.verdict]}</p>
-                )}
+                {review && <p className={styles.flaggedReview}>{review}</p>}
               </li>
             );
           })}

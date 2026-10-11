@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
-import { isFlagged, parseLocalTimestamp } from '@sentinel/engine';
+import { isFlagged } from '@sentinel/engine';
 import { audit } from '../audit';
+import { fromDbTime, toDbTime } from '../dbTime';
 import type { ColumnMapping } from './fields';
 import { scoreImport, toEngineRules, type StoredHistory } from './score';
 import type { Table } from './table';
@@ -29,10 +30,6 @@ const chunks = <T>(items: readonly T[]) =>
   Array.from({ length: Math.ceil(items.length / CHUNK) }, (_, i) =>
     items.slice(i * CHUNK, (i + 1) * CHUNK),
   );
-
-/** "2026-10-05T02:34:00" <-> a Date holding that wall-clock time in UTC, as Postgres stores it. */
-const toDbTime = (timestamp: string) => new Date(parseLocalTimestamp(timestamp).ms);
-const fromDbTime = (date: Date) => date.toISOString().slice(0, 19);
 
 /**
  * Validates every row, skips duplicates, scores the rest against each account's stored

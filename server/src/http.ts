@@ -12,9 +12,9 @@ export class HttpError extends Error {
   }
 }
 
-/** Parses the JSON body against a schema, or throws a 400 listing each problem. */
-export function parseBody<T extends z.ZodTypeAny>(req: Request, schema: T): z.infer<T> {
-  const result = schema.safeParse(req.body);
+/** Turns schema problems into a 400 listing each one by field. */
+function parse<T extends z.ZodTypeAny>(input: unknown, schema: T): z.infer<T> {
+  const result = schema.safeParse(input);
   if (!result.success) {
     throw new HttpError(
       400,
@@ -23,4 +23,14 @@ export function parseBody<T extends z.ZodTypeAny>(req: Request, schema: T): z.in
     );
   }
   return result.data;
+}
+
+/** Parses the JSON body against a schema, or throws a 400 listing each problem. */
+export function parseBody<T extends z.ZodTypeAny>(req: Request, schema: T): z.infer<T> {
+  return parse(req.body, schema);
+}
+
+/** Parses the query string against a schema, or throws a 400 listing each problem. */
+export function parseQuery<T extends z.ZodTypeAny>(req: Request, schema: T): z.infer<T> {
+  return parse(req.query, schema);
 }

@@ -4,14 +4,33 @@ import type { ScoredTransaction } from '../../types';
 import { formatDateTime, formatMoney } from '../../utils/format';
 import { RULE_NAMES } from '../../utils/rules';
 import RiskBadge from '../RiskBadge';
+import type { ReviewLabels } from '../TransactionTable';
 import ScoreChip from '../ScoreChip';
 import shared from '../shared.module.css';
 import styles from './Dashboard.module.css';
 
 const VISIBLE = 6;
 
+interface ReviewQueueProps {
+  /** Riskiest first; only the first few are shown. */
+  queue: readonly ScoredTransaction[];
+  /** The queue's full size, when `queue` holds only the first few. */
+  total?: number;
+  description: string;
+  /** Where "View all" goes: the table filtered to the queue. */
+  viewAllHref: string;
+  /** Progress so far, e.g. "Under review: needs info". */
+  reviewLabels?: ReviewLabels;
+}
+
 /** The analyst's to-do list: flagged and not yet reviewed, riskiest first. */
-export default function ReviewQueue({ queue }: { queue: readonly ScoredTransaction[] }) {
+export default function ReviewQueue({
+  queue,
+  total = queue.length,
+  description,
+  viewAllHref,
+  reviewLabels = {},
+}: ReviewQueueProps) {
   const visible = queue.slice(0, VISIBLE);
 
   return (
@@ -22,13 +41,11 @@ export default function ReviewQueue({ queue }: { queue: readonly ScoredTransacti
             <Inbox size={17} aria-hidden="true" />
             Review queue
           </h2>
-          <p className={shared.cardDescription}>
-            Flagged transactions without an analyst verdict, riskiest first.
-          </p>
+          <p className={shared.cardDescription}>{description}</p>
         </div>
-        {queue.length > VISIBLE && (
-          <Link to="/?flagged=1&sort=score" className={shared.buttonGhost}>
-            View all {queue.length}
+        {total > visible.length && (
+          <Link to={viewAllHref} className={shared.buttonGhost}>
+            View all {total}
           </Link>
         )}
       </div>
@@ -52,6 +69,9 @@ export default function ReviewQueue({ queue }: { queue: readonly ScoredTransacti
                   </Link>
                   <span className={styles.queueCustomer}>{tx.customerName}</span>
                   <RiskBadge level={tx.riskLevel} />
+                  {reviewLabels[tx.id] && (
+                    <span className={styles.queueProgress}>{reviewLabels[tx.id]}</span>
+                  )}
                 </div>
                 <p className={styles.queueMeta}>
                   {tx.merchant} · {tx.location.city} · {formatDateTime(tx.timestamp)}

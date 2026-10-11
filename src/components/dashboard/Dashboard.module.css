@@ -88,6 +88,12 @@
   font-weight: 500;
 }
 
+.queueProgress {
+  color: var(--accent-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .queueMeta {
   margin: 2px 0 0;
   color: var(--text-muted);
