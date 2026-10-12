@@ -15,6 +15,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:set-password": "tsx --env-file-if-exists=.env prisma/set-admin-password.ts",
+    "db:clear-transactions": "tsx --env-file-if-exists=.env prisma/clear-transactions.ts",
     "db:reset": "prisma migrate reset"
   },
   "prisma": {

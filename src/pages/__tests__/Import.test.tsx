@@ -130,4 +130,37 @@ describe('Import page', () => {
     );
     expect(screen.getByLabelText('Choose file')).toBeInTheDocument();
   });
+
+  it('deletes every stored transaction only after confirming', async () => {
+    let stored = 457;
+    const calls = fakeApi((_url, init) => {
+      if (init?.method === 'DELETE') {
+        stored = 0;
+        return { status: 200, body: { deleted: { transactions: 457, decisions: 2 } } };
+      }
+      return { status: 200, body: { items: [], total: stored, page: 1, pageCount: 1 } };
+    });
+    const user = userEvent.setup();
+    renderImport();
+
+    const card = within(await screen.findByRole('region', { name: 'Start over' }));
+    expect(await card.findByText(/457 transactions stored/)).toBeInTheDocument();
+    await user.click(card.getByRole('button', { name: 'Delete all transactions…' }));
+    await user.click(card.getByRole('button', { name: 'Cancel' }));
+    expect(calls.some((c) => c.init?.method === 'DELETE')).toBe(false);
+
+    await user.click(card.getByRole('button', { name: 'Delete all transactions…' }));
+    expect(card.getByRole('alertdialog')).toHaveTextContent('cannot be undone');
+    await user.click(card.getByRole('button', { name: 'Yes, delete 457 transactions' }));
+
+    expect(
+      await card.findByText(
+        'Deleted 457 transactions and 2 decisions. You can import a new file now.',
+      ),
+    ).toBeInTheDocument();
+    const sent = calls.find((c) => c.init?.method === 'DELETE');
+    expect(sent?.url.pathname).toBe('/api/transactions');
+    expect(JSON.parse(String(sent?.init?.body))).toEqual({ confirm: 'delete all transactions' });
+    expect(await card.findByText('No transactions are stored.')).toBeInTheDocument();
+  });
 });

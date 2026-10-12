@@ -116,6 +116,8 @@ If signing in does not work:
 - **"Email or password is incorrect"**: use the admin email and password that were in `server/.env` when you first ran `db:seed`. Running the seed again never changes an existing account; it only creates an admin for an email that does not exist yet. If the password is lost, put a new one (12 characters or more) in `SEED_ADMIN_PASSWORD`, save the file and run `npm run db:set-password -w @sentinel/server`.
 - **http://localhost:4000 shows "The Sentinel API is running"**: that address is only the API. Open the web app at http://localhost:5173.
 
+Importing adds to what is stored; a transaction ID that is already stored is skipped as a duplicate. To start again with a different file, an admin can use **Start over** on the Import page: it deletes every stored transaction and its decisions after asking for confirmation, keeps users, rules and the audit log, and records the clearing in the log. The same is available on the server as `npm run db:clear-transactions -w @sentinel/server` (it shows what it would delete; add `-- --yes` to do it).
+
 In API mode the app asks you to sign in, and every page shows stored transactions instead of demo data:
 
 - **Import** (admins): choose a CSV or `.xlsx` file, check how its columns map to fields (with an example from the first row), then import. The report lists what was imported and flagged, every rejected row with its reasons, and duplicates that were skipped.
@@ -124,16 +126,17 @@ In API mode the app asks you to sign in, and every page shows stored transaction
 - **Rules**: the rules new imports are scored with, and how each one has fared: how many stored transactions it fired on, and how many of those analysts confirmed as fraud or marked as false positives. Admins can switch rules on or off and change their points (analysts see them read-only); every change is recorded with its old and new values. Stored transactions keep their score until an admin re-scores them: **Preview re-score** shows how many would change and how risk levels would move, then one click applies it. Re-scoring never touches analyst decisions or review statuses.
 - **Audit log** (admins): every sign-in, import, decision, rule change and re-score, newest first, filterable by action, person and date. Entries cannot be edited or deleted.
 
-| Command (add `-w @sentinel/server`) | What it does                                       |
-| ----------------------------------- | -------------------------------------------------- |
-| `npm run dev`                       | Start the API with reload on change                |
-| `npm test`                          | Run the API tests                                  |
-| `npm run typecheck`                 | Type-check the API                                 |
-| `npm run build` / `npm start`       | Bundle to `server/dist/` and run it                |
-| `npm run db:migrate`                | Apply schema changes and create a migration        |
-| `npm run db:seed`                   | Add default rules and the admin (safe to re-run)   |
-| `npm run db:set-password`           | Reset the admin password to the one in `.env`      |
-| `npm run db:reset`                  | Drop all data and re-create the database (careful) |
+| Command (add `-w @sentinel/server`) | What it does                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                       | Start the API with reload on change                                                                     |
+| `npm test`                          | Run the API tests                                                                                       |
+| `npm run typecheck`                 | Type-check the API                                                                                      |
+| `npm run build` / `npm start`       | Bundle to `server/dist/` and run it                                                                     |
+| `npm run db:migrate`                | Apply schema changes and create a migration                                                             |
+| `npm run db:seed`                   | Add default rules and the admin (safe to re-run)                                                        |
+| `npm run db:set-password`           | Reset the admin password to the one in `.env`                                                           |
+| `npm run db:clear-transactions`     | Delete all stored transactions and decisions (keeps users, rules, audit log); add `-- --yes` to confirm |
+| `npm run db:reset`                  | Drop all data and re-create the database (careful)                                                      |
 
 The API tests run against a separate database, `sentinel_test` by default (see `TEST_DATABASE_URL` in `server/.env.example`). Create it once with `createdb -U postgres sentinel_test`; the tests bring its tables up to date, empty them between tests, and refuse any database whose name does not end in `_test`.
 
@@ -141,27 +144,28 @@ The API tests run against a separate database, `sentinel_test` by default (see `
 
 Every endpoint except health and login needs a signed-in user. Sessions use an HttpOnly, SameSite=Strict cookie that lasts 8 hours; the database stores only a hash of its token.
 
-| Method and path                        | Who       | What it does                                                                             |
-| -------------------------------------- | --------- | ---------------------------------------------------------------------------------------- |
-| `GET /api/health`                      | Anyone    | Reports whether the API can reach the database                                           |
-| `POST /api/auth/login`                 | Anyone    | Signs in with `{ email, password }`; sets the cookie                                     |
-| `POST /api/auth/logout`                | Signed in | Ends the session                                                                         |
-| `GET /api/auth/me`                     | Signed in | The current user                                                                         |
-| `GET /api/users`                       | Admin     | Lists users (never password hashes)                                                      |
-| `POST /api/users`                      | Admin     | Creates a user: `{ name, email, password, role }`                                        |
-| `POST /api/imports/preview`            | Admin     | Reads an uploaded file: columns, a sample, a suggested mapping. Stores nothing           |
-| `POST /api/imports?mapping=`           | Admin     | Validates, scores and stores the rows; returns the import report                         |
-| `GET /api/dashboard`                   | Signed in | Totals, risk mix, per-day counts, queue size and the riskiest queued items               |
-| `GET /api/transactions`                | Signed in | Filtered, sorted, paged list (see below)                                                 |
-| `GET /api/transactions/:id`            | Signed in | One transaction with its reasons and every decision, newest first                        |
-| `POST /api/transactions/:id/decisions` | Signed in | Adds a decision: `{ decision, notes }`                                                   |
-| `GET /api/customers/:accountId`        | Signed in | One account's transactions, oldest first                                                 |
-| `GET /api/rules`                       | Signed in | The stored rules                                                                         |
-| `GET /api/rules/feedback`              | Signed in | Per rule: transactions it fired on, and how many were confirmed fraud or false positives |
-| `PATCH /api/rules/:id`                 | Admin     | Changes a rule: `{ enabled?, points? }` (0–100)                                          |
-| `GET /api/rescore`                     | Admin     | Previews re-scoring every stored transaction with the current rules                      |
-| `POST /api/rescore`                    | Admin     | Re-scores and saves; decisions and review statuses are kept                              |
-| `GET /api/audit`                       | Admin     | The audit log: `action`, `actor`, `from`, `to` (UTC days), `page`, `pageSize`            |
+| Method and path                        | Who       | What it does                                                                                        |
+| -------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
+| `GET /api/health`                      | Anyone    | Reports whether the API can reach the database                                                      |
+| `POST /api/auth/login`                 | Anyone    | Signs in with `{ email, password }`; sets the cookie                                                |
+| `POST /api/auth/logout`                | Signed in | Ends the session                                                                                    |
+| `GET /api/auth/me`                     | Signed in | The current user                                                                                    |
+| `GET /api/users`                       | Admin     | Lists users (never password hashes)                                                                 |
+| `POST /api/users`                      | Admin     | Creates a user: `{ name, email, password, role }`                                                   |
+| `POST /api/imports/preview`            | Admin     | Reads an uploaded file: columns, a sample, a suggested mapping. Stores nothing                      |
+| `POST /api/imports?mapping=`           | Admin     | Validates, scores and stores the rows; returns the import report                                    |
+| `GET /api/dashboard`                   | Signed in | Totals, risk mix, per-day counts, queue size and the riskiest queued items                          |
+| `GET /api/transactions`                | Signed in | Filtered, sorted, paged list (see below)                                                            |
+| `DELETE /api/transactions`             | Admin     | Deletes every stored transaction and its decisions; send `{ "confirm": "delete all transactions" }` |
+| `GET /api/transactions/:id`            | Signed in | One transaction with its reasons and every decision, newest first                                   |
+| `POST /api/transactions/:id/decisions` | Signed in | Adds a decision: `{ decision, notes }`                                                              |
+| `GET /api/customers/:accountId`        | Signed in | One account's transactions, oldest first                                                            |
+| `GET /api/rules`                       | Signed in | The stored rules                                                                                    |
+| `GET /api/rules/feedback`              | Signed in | Per rule: transactions it fired on, and how many were confirmed fraud or false positives            |
+| `PATCH /api/rules/:id`                 | Admin     | Changes a rule: `{ enabled?, points? }` (0–100)                                                     |
+| `GET /api/rescore`                     | Admin     | Previews re-scoring every stored transaction with the current rules                                 |
+| `POST /api/rescore`                    | Admin     | Re-scores and saves; decisions and review statuses are kept                                         |
+| `GET /api/audit`                       | Admin     | The audit log: `action`, `actor`, `from`, `to` (UTC days), `page`, `pageSize`                       |
 
 Logins (including failed ones), logouts, new users, password resets, imports, decisions, rule changes and re-scores are recorded in the audit log.
 

@@ -162,3 +162,60 @@
     content: 'Example: ';
   }
 }
+
+/* ---- Start over: delete stored transactions ---- */
+
+.clearCard {
+  border-color: color-mix(in srgb, var(--risk-critical-dot) 35%, var(--border));
+}
+
+.clearConfirm {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--risk-critical-bg);
+  color: var(--risk-critical-fg);
+  font-size: 0.875rem;
+}
+
+.clearConfirm p {
+  margin: 0;
+}
+
+.clearActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.25rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--risk-critical-dot);
+  border-radius: var(--radius-sm);
+  background: var(--risk-critical-dot);
+  color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clearMessage {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}

@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiFetch, json } from './client';
 import type { ColumnMapping, ImportPreview, ImportReport } from './types';
 
 /** The file goes as the raw request body; the server detects CSV or Excel from its bytes. */
@@ -39,4 +39,14 @@ export function mappingProblems(preview: ImportPreview, mapping: ColumnMapping):
     else used.set(column, field.label);
   }
   return problems;
+}
+
+/** Must match the server; makes clearing a deliberate act rather than a stray request. */
+const CLEAR_CONFIRMATION = 'delete all transactions';
+
+/** Deletes every stored transaction and its decisions. Users, rules and the audit log stay. */
+export function clearTransactions(): Promise<{
+  deleted: { transactions: number; decisions: number };
+}> {
+  return apiFetch('/api/transactions', json('DELETE', { confirm: CLEAR_CONFIRMATION }));
 }

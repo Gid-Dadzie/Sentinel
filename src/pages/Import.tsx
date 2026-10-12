@@ -1,6 +1,7 @@
 import { FileUp, Upload } from 'lucide-react';
 import { useId, useState, type ChangeEvent } from 'react';
 import { ApiError } from '../api/client';
+import ClearTransactions from '../components/import/ClearTransactions';
 import { previewImport, runImport } from '../api/imports';
 import type { ColumnMapping, ImportPreview, ImportReport } from '../api/types';
 import styles from '../components/import/Import.module.css';
@@ -116,6 +117,8 @@ export default function Import() {
       {step.kind === 'done' && (
         <ReportStep report={step.report} onAnother={() => setStep({ kind: 'choose' })} />
       )}
+
+      {step.kind === 'choose' && <ClearTransactions />}
     </div>
   );
 }

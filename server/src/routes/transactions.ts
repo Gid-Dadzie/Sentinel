@@ -2,7 +2,9 @@ import type { Decision, PrismaClient, ReviewStatus } from '@prisma/client';
 import { Router } from 'express';
 import { z } from 'zod';
 import { audit } from '../audit';
+import { requireRole } from '../auth/middleware';
 import { HttpError, parseBody, parseQuery } from '../http';
+import { clearTransactions } from '../transactions/clear';
 import { listOrder, listQuerySchema, listWhere } from '../transactions/listQuery';
 import { TRANSACTION_INCLUDE, toApiTransaction } from '../transactions/serialize';
 
@@ -35,7 +37,13 @@ const decisionSelect = {
   analyst: { select: { id: true, name: true } },
 } as const;
 
-/** Stored transactions and analyst decisions. Analysts and admins; behind requireAuth. */
+/** Sent with DELETE /api/transactions so a stray request cannot empty the database. */
+const clearSchema = z.object({ confirm: z.literal('delete all transactions') }).strict();
+
+/**
+ * Stored transactions and analyst decisions. Analysts and admins; clearing everything is
+ * for admins. Behind requireAuth.
+ */
 export function transactionsRouter(prisma: PrismaClient): Router {
   const router = Router();
 
@@ -53,6 +61,15 @@ export function transactionsRouter(prisma: PrismaClient): Router {
       include: TRANSACTION_INCLUDE,
     });
     res.json({ items: rows.map(toApiTransaction), total, page, pageCount });
+  });
+
+  /**
+   * Deletes every stored transaction, with its reasons and decisions, to start again with
+   * a fresh import. Users, rules and the audit log are kept; the clearing is audited.
+   */
+  router.delete('/', requireRole('admin'), async (req, res) => {
+    parseBody(req, clearSchema);
+    res.json({ deleted: await clearTransactions(prisma, res.locals.user.id) });
   });
 
   /** The transaction and every decision on it, newest first. */

@@ -369,3 +369,52 @@ describe('POST /api/transactions/:id/decisions', () => {
     expect(await prisma.auditLog.count({ where: { action: 'decision' } })).toBe(0);
   });
 });
+
+describe('DELETE /api/transactions', () => {
+  const CONFIRM = { confirm: 'delete all transactions' };
+
+  it('lets an admin clear every transaction and decision, keeping users, rules and the log', async () => {
+    await seed();
+    const admin = await createUser('admin');
+    const cookie = await login(admin.email);
+    await decide('TX-3', cookie, { decision: 'confirmed_fraud', notes: 'Stolen card.' });
+    await prisma.rule.create({
+      data: { id: 'amount', name: 'Unusual amount', condition: 'x', points: 25 },
+    });
+
+    const res = await request(app).delete('/api/transactions').set('Cookie', cookie).send(CONFIRM);
+
+    expect(res.status).toBe(200);
+    expect(res.body.deleted).toEqual({ transactions: 4, decisions: 1 });
+    expect(await prisma.transaction.count()).toBe(0);
+    expect(await prisma.fraudReason.count()).toBe(0);
+    expect(await prisma.analystDecision.count()).toBe(0);
+    expect(await prisma.user.count()).toBe(1);
+    expect(await prisma.rule.count()).toBe(1);
+    // Earlier entries stay, and the clearing is recorded.
+    expect(await prisma.auditLog.count({ where: { action: 'decision' } })).toBe(1);
+    expect(
+      await prisma.auditLog.findFirst({ where: { action: 'transactions.clear' } }),
+    ).toMatchObject({ actorId: admin.id, detail: { transactions: 4, decisions: 1 } });
+  });
+
+  it('needs the exact confirmation, and is for admins only', async () => {
+    await seed();
+    const admin = await createUser('admin');
+    const adminCookie = await login(admin.email);
+    const missing = await request(app).delete('/api/transactions').set('Cookie', adminCookie);
+    expect(missing.status).toBe(400);
+    const wrong = await request(app)
+      .delete('/api/transactions')
+      .set('Cookie', adminCookie)
+      .send({ confirm: 'yes' });
+    expect(wrong.status).toBe(400);
+
+    const analyst = await request(app)
+      .delete('/api/transactions')
+      .set('Cookie', await analystCookie())
+      .send(CONFIRM);
+    expect(analyst.status).toBe(403);
+    expect(await prisma.transaction.count()).toBe(4);
+  });
+});

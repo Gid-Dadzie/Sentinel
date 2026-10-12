@@ -25,6 +25,7 @@ const ACTION_LABELS: Record<string, string> = {
   decision: 'Recorded decision',
   'rule.update': 'Changed rule',
   rescore: 'Re-scored transactions',
+  'transactions.clear': 'Deleted all transactions',
 };
 
 const atFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'medium' });
@@ -67,6 +68,8 @@ function describeEntry(entry: AuditEntry): string {
       return ruleChange(d);
     case 'rescore':
       return `${num(d.changed)} of ${num(d.total)} changed; flagged ${num(d.flaggedBefore)} → ${num(d.flaggedAfter)}`;
+    case 'transactions.clear':
+      return `${num(d.transactions)} transactions and ${num(d.decisions)} decisions removed`;
     case 'user.password_reset':
       return 'From the server command line';
     default:
