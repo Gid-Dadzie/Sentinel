@@ -7,6 +7,14 @@ export { calculateFraudRisk } from './calculateFraudRisk';
 export { formatDuration, formatMoney, formatNumber } from './format';
 export { haversine } from './haversine';
 export { CITIES, getCity, type CityInfo, type CityName } from './locations';
+export {
+  airtimeBurst,
+  manyRecipients,
+  newAgentLargeCashOut,
+  rapidCashOut,
+  structuring,
+} from './mobileMoney';
+export type { RuleCheck, RuleContext } from './ruleContext';
 export { getRiskLevel, getStatus, isFlagged } from './riskLevel';
 export {
   DEFAULT_RULES,

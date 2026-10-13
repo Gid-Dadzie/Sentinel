@@ -2,7 +2,9 @@
 
 A fraud-risk dashboard that scores every transaction live against a set of editable rules, and gives analysts a queue of flagged transactions to review.
 
-**Live demo:** https://gid-dadzie.github.io/Sentinel/
+**Live app:** https://sentinel-sooty-alpha.vercel.app/ (sign in, import, review; hosted on Vercel with a PostgreSQL database)
+
+**Demo without sign-in:** https://gid-dadzie.github.io/Sentinel/ (generated data, runs in the browser)
 
 ![Sentinel dashboard in dark mode: review queue, risk mix and a flagged-by-day calendar](docs/screenshot.png)
 
@@ -19,7 +21,7 @@ A fraud-risk dashboard that scores every transaction live against a set of edita
 
 ## How scoring works
 
-Each transaction is checked against six rules, using only that customer's **earlier** transactions as history. The points of every rule that fires are added up and capped at 100.
+Each transaction is checked against eleven rules, using only that customer's **earlier** transactions as history. The points of every rule that fires are added up and capped at 100.
 
 | Rule               | Fires when                                                                                      | Default points |
 | ------------------ | ----------------------------------------------------------------------------------------------- | -------------: |
@@ -29,6 +31,18 @@ Each transaction is checked against six rules, using only that customer's **earl
 | New device         | The customer has history but has never used this device                                         |             15 |
 | Rapid transactions | 4 or more transactions (including this one) within 5 minutes                                    |             20 |
 | Impossible travel  | City differs from the previous transaction, over 200 km away, at an implied speed over 900 km/h |             30 |
+
+**Mobile money rules.** These use the transaction type, recipient phone and agent ID, which imported files can provide. They never fire on transactions without them, so the generated demo data scores exactly as before.
+
+| Rule                      | Fires when                                                                                                              | Default points |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------: |
+| Rapid cash-out            | A cash-out of at least 80% of the money cashed in during the previous 30 minutes                                        |             25 |
+| Many recipients           | Transfers to 5 or more different recipients (including this one) within 60 minutes                                      |             20 |
+| New agent, large cash-out | At least 3 earlier transactions, a cash-out at an agent the account has never used, and above 3× the customer's average |             15 |
+| Airtime burst             | 5 or more airtime purchases (including this one) within 10 minutes                                                      |             10 |
+| Structuring               | 3 or more transactions within 24 hours, each between 90% and 100% of the 10,000 reporting limit                         |             20 |
+
+Each is a separate function in [packages/engine/src/mobileMoney.ts](packages/engine/src/mobileMoney.ts), with its thresholds in `THRESHOLDS` and its own tests. Recipients are compared as stored (masked), so two numbers that share their first and last three digits count as one.
 
 | Score  | Risk level | Decision                        |
 | ------ | ---------- | ------------------------------- |
@@ -82,7 +96,7 @@ An npm workspace with three parts:
 
 ```
 packages/engine/  @sentinel/engine: the pure scoring engine, shared by the web app and the API
-  src/            The six rules, risk levels, scoreAll, city table (no React, no I/O)
+  src/            The eleven rules, risk levels, scoreAll, city table (no React, no I/O)
 src/              The web app
   data/           Seeded generator for the demo transactions
   state/          Zustand store: rules, scored transactions, analyst reviews (saved locally)

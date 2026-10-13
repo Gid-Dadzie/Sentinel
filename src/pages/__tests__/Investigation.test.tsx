@@ -35,7 +35,7 @@ describe('Investigation page', () => {
     expect(score.getByText('70')).toBeInTheDocument();
 
     const items = ruleResults().getAllByRole('listitem');
-    expect(items).toHaveLength(6);
+    expect(items).toHaveLength(11); // the six general rules and the five mobile money rules
     expect(items[0]).toHaveTextContent('+25');
     expect(items[0]).toHaveTextContent(/Unusual amount.*× this customer's average/);
     expect(ruleResults().getAllByText(/^\+\d+$/)).toHaveLength(4);

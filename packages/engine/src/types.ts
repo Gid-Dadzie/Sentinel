@@ -6,8 +6,24 @@ export type Status = (typeof STATUSES)[number];
 export const RISK_LEVELS = ['low', 'medium', 'high', 'critical'] as const;
 export type RiskLevel = (typeof RISK_LEVELS)[number];
 
-export const RULE_IDS = ['amount', 'time', 'country', 'device', 'rapid', 'travel'] as const;
+export const RULE_IDS = [
+  'amount',
+  'time',
+  'country',
+  'device',
+  'rapid',
+  'travel',
+  // Mobile money rules: they need the fields below and stay silent without them.
+  'cashout',
+  'recipients',
+  'agent',
+  'airtime',
+  'structuring',
+] as const;
 export type RuleId = (typeof RULE_IDS)[number];
+
+export const TXN_TYPES = ['cash_in', 'cash_out', 'transfer', 'airtime', 'payment'] as const;
+export type TxnType = (typeof TXN_TYPES)[number];
 
 export interface Location {
   city: string;
@@ -33,6 +49,12 @@ export interface Transaction {
   timestamp: string; // local ISO without zone, "2026-10-05T02:34:00"
   deviceId: string;
   status: Status;
+  /** Mobile money details, when the source records them. */
+  txnType?: TxnType;
+  /** Who a transfer went to, as stored (phone numbers are masked, e.g. "024****601"). */
+  recipient?: string | null;
+  /** The agent who handled a cash in or cash out. */
+  agentId?: string | null;
   riskScore?: number;
   riskLevel?: RiskLevel;
   fraudReasons?: FraudReason[];

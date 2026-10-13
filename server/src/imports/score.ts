@@ -23,7 +23,15 @@ export interface ScoredImportRow extends ImportRow {
 /** What the engine needs from a stored transaction. */
 export type StoredHistory = Pick<
   Transaction,
-  'id' | 'accountId' | 'amount' | 'timestamp' | 'deviceId' | 'location'
+  | 'id'
+  | 'accountId'
+  | 'amount'
+  | 'timestamp'
+  | 'deviceId'
+  | 'location'
+  | 'txnType'
+  | 'recipient'
+  | 'agentId'
 >;
 
 const isRuleId = (id: string): id is RuleId => (RULE_IDS as readonly string[]).includes(id);
@@ -60,6 +68,9 @@ function rowToEngine(row: ImportRow): Transaction {
     timestamp: row.timestamp,
     deviceId: row.deviceId,
     status: 'approved',
+    txnType: row.txnType,
+    recipient: row.recipientMsisdn,
+    agentId: row.agentId,
   };
 }
 

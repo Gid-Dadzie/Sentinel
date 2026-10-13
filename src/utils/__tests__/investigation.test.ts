@@ -58,6 +58,11 @@ describe('getRuleOutcomes', () => {
       'clear:device',
       'clear:rapid',
       'clear:travel',
+      'clear:cashout',
+      'clear:recipients',
+      'clear:agent',
+      'clear:airtime',
+      'clear:structuring',
       'disabled:country',
     ]);
   });

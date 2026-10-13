@@ -54,6 +54,11 @@ describe('default rules', () => {
       device: 15,
       rapid: 20,
       travel: 30,
+      cashout: 25,
+      recipients: 20,
+      agent: 15,
+      airtime: 10,
+      structuring: 20,
     });
   });
 

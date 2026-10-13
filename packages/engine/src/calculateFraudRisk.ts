@@ -2,22 +2,18 @@ import { getCity } from './locations';
 import type { FraudReason, FraudResult, RuleId, RuleConfig, Transaction } from './types';
 import { formatDuration, formatMoney, formatNumber } from './format';
 import { haversine } from './haversine';
+import {
+  airtimeBurst,
+  manyRecipients,
+  newAgentLargeCashOut,
+  rapidCashOut,
+  structuring,
+} from './mobileMoney';
+import type { RuleCheck, RuleContext } from './ruleContext';
 import { THRESHOLDS } from './rules';
 import { HOUR_MS, MINUTE_MS, parseLocalTimestamp } from './time';
 
 const MAX_SCORE = 100;
-
-interface RuleContext {
-  transaction: Transaction;
-  /** Same account, earlier timestamps only, sorted ascending. */
-  history: readonly Transaction[];
-  nowMs: number;
-  hour: number;
-  minute: number;
-}
-
-/** Returns a plain-language reason when the rule triggers, otherwise null. */
-type RuleCheck = (ctx: RuleContext) => string | null;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -80,6 +76,12 @@ const RULE_CHECKS: Record<RuleId, RuleCheck> = {
     if (speedKmh <= THRESHOLDS.travelMaxSpeedKmh) return null;
     return `${previous.location.city} to ${transaction.location.city} is ${formatNumber(distanceKm)} km in ${formatDuration(elapsedMs / MINUTE_MS)}, about ${formatNumber(speedKmh)} km/h. That is faster than a plane.`;
   },
+
+  cashout: rapidCashOut,
+  recipients: manyRecipients,
+  agent: newAgentLargeCashOut,
+  airtime: airtimeBurst,
+  structuring,
 };
 
 /**

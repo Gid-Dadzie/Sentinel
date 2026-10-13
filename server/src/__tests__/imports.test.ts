@@ -280,3 +280,42 @@ describe('POST /api/imports', () => {
     expect(await prisma.transaction.count()).toBe(0);
   });
 });
+
+describe('mobile money rules on import', () => {
+  const MM_HEADER = 'Txn ID,Wallet,Amount,Type,Date,Town,Country,IMEI,MSISDN,Recipient,Agent';
+  const MM_MAPPING = { ...MAPPING, recipientMsisdn: 'Recipient', agentId: 'Agent' };
+  const row = (
+    id: string,
+    amount: number,
+    type: string,
+    time: string,
+    recipient = '',
+    agent = '',
+  ) =>
+    `${id},ACC-7,${amount},${type},2026-09-15 ${time},Accra,Ghana,D-1,0244123601,${recipient},${agent}`;
+  const { customerName: _unused, ...mapping } = MM_MAPPING;
+
+  it('scores rapid cash-out and many recipients from the file, against earlier rows', async () => {
+    const lines = [
+      row('MM-1', 1000, 'cash in', '12:00', '', 'AG-1'),
+      row('MM-2', 950, 'cash out', '12:10', '', 'AG-1'), // 95% of the cash-in, 10 min later
+      ...['0201000001', '0201000002', '0201000003', '0201000004', '0201000005'].map(
+        (to, i) => row(`MM-${3 + i}`, 50, 'transfer', `13:${i}0`, to), // 10 minutes apart: not "rapid",
+      ),
+    ];
+    const file = Buffer.from([MM_HEADER, ...lines].join('\n'));
+    const res = await upload(await adminCookie(), file, mapping);
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ imported: 7, rejected: [] });
+
+    const reasonsOf = async (id: string) =>
+      (await prisma.fraudReason.findMany({ where: { transactionId: id } })).map((r) => r.ruleId);
+    expect(await reasonsOf('MM-2')).toEqual(['cashout']);
+    expect(await reasonsOf('MM-7')).toEqual(['recipients']);
+    expect(await reasonsOf('MM-6')).toEqual([]); // only four recipients so far
+    // Recipients are stored masked, and the rule still tells them apart.
+    expect((await prisma.transaction.findUnique({ where: { id: 'MM-7' } }))?.recipientMsisdn).toBe(
+      '020****005',
+    );
+  });
+});

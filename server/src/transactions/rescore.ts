@@ -61,6 +61,9 @@ export async function planRescore(
     timestamp: fromDbTime(row.timestamp),
     deviceId: row.deviceId,
     status: row.status,
+    txnType: row.txnType,
+    recipient: row.recipientMsisdn,
+    agentId: row.agentId,
   }));
   const before = new Map(rows.map((row) => [row.id, row]));
   const scored = scoreAll(transactions, rules);

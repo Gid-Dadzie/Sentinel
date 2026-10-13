@@ -101,6 +101,9 @@ export async function runImport(
           deviceId: true,
           city: true,
           country: true,
+          txnType: true,
+          recipientMsisdn: true,
+          agentId: true,
         },
       })
     : [];
@@ -111,6 +114,9 @@ export async function runImport(
     timestamp: fromDbTime(t.timestamp),
     deviceId: t.deviceId,
     location: { city: t.city, country: t.country },
+    txnType: t.txnType,
+    recipient: t.recipientMsisdn,
+    agentId: t.agentId,
   }));
   const rules = toEngineRules(await prisma.rule.findMany());
   const scored = scoreImport(
