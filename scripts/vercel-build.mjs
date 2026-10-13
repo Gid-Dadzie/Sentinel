@@ -1,6 +1,6 @@
 // Vercel's build: generate the database client, bring the hosted database's tables up to
 // date, add the default rules and the first admin (safe to repeat), then build the API
-// bundle and the web app in API mode. Run by `npm run vercel-build` (see vercel.json).
+// bundle and the web app in API mode. Run by `npm run build:vercel` (see vercel.json).
 import { execSync } from 'node:child_process';
 
 // Migrations need a direct connection. Vercel's Neon integration provides one as

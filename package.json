@@ -14,7 +14,7 @@
     "dev:api": "vite --mode api",
     "build": "tsc -b && tsc -p packages/engine && vite build",
     "build:api": "tsc -b && tsc -p packages/engine && vite build --mode api",
-    "vercel-build": "node scripts/vercel-build.mjs",
+    "build:vercel": "node scripts/vercel-build.mjs",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run && npm test -w @sentinel/engine",
