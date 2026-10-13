@@ -189,7 +189,21 @@ React 18, TypeScript, Vite, React Router, Zustand, Vitest and Testing Library. C
 
 ## Deployment
 
-Every push to `main` runs lint, format check, tests and a build on GitHub Actions. If those pass, the site is published to GitHub Pages.
+Every push to `main` runs lint, format check, tests and a build on GitHub Actions. If those pass, the demo (generated data, no sign-in) is published to GitHub Pages.
+
+### Deploying to Vercel (with the API and a database)
+
+Vercel serves the web app in API mode and runs the API as a serverless function (`api/index.js`, routed by `vercel.json`). The database must be hosted too, since the one on your computer cannot be reached from the internet.
+
+1. **Database.** In Vercel, open **Storage → Create Database → Neon** (free tier), or create one at [neon.tech](https://neon.tech) and copy its connection string.
+2. **Project.** In Vercel, **Add New → Project** and import this GitHub repository. Leave the framework as **Other**; `vercel.json` sets the build.
+3. **Environment variables** (Project → Settings → Environment Variables):
+   - `DATABASE_URL`: the connection string (added for you if you connected Neon through Vercel Storage).
+   - `SEED_ADMIN_NAME`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`: the first admin. Use a new password of 12 characters or more, not the one on your computer.
+4. **Deploy.** The build (`scripts/vercel-build.mjs`) creates or updates the tables, adds the default rules and the admin (both safe to repeat), and builds the API and the app. Every later push to `main` deploys again.
+5. Open the Vercel URL, sign in as the admin and import a file.
+
+Notes: Vercel limits a request to 4.5 MB, so files larger than that cannot be imported there (the local API allows 10 MB). Use only anonymised or made-up data on a public deployment. Sessions use secure cookies in production, so the site must be opened over HTTPS, which Vercel always does.
 
 ## License
 
